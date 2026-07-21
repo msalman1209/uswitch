@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Smartphone, Info, ShieldCheck, ArrowRight, Star, Award } from 'lucide-react';
+import { Smartphone, Info, ShieldCheck, ArrowRight, Star, Award, Filter } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -17,14 +17,13 @@ export default function SimOnlyDealsPage() {
 function SimOnlyDeals() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const postcode = searchParams.get('postcode') || 'SW1A 1AA';
   const [loading, setLoading] = useState(true);
   const [deals, setDeals] = useState<any[]>([]);
   const [comparisonId, setComparisonId] = useState<number | null>(null);
 
   // Filters State
   const [selectedProvider, setSelectedProvider] = useState<string>('All');
-  const [minData, setMinData] = useState<number>(0); // 0 = Any, 20 = 20GB+, 50 = 50GB+, -1 = Unlimited
+  const [minData, setMinData] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(30);
 
   useEffect(() => {
@@ -43,11 +42,10 @@ function SimOnlyDeals() {
           })
         });
         const data = await response.json();
-        setDeals(data.results.deals);
+        setDeals(data.results.deals || []);
         setComparisonId(data.comparisonId);
       } catch (error) {
         console.error('Error fetching SIM deals:', error);
-        alert('Failed to connect to the SIM comparison service.');
       } finally {
         setLoading(false);
       }
@@ -60,7 +58,6 @@ function SimOnlyDeals() {
     const token = localStorage.getItem('uswitch_token');
 
     if (!token) {
-      // Save details to session storage temporarily
       const tempSwitchInfo = {
         comparisonId,
         category: 'sim',
@@ -68,7 +65,7 @@ function SimOnlyDeals() {
         planName: deal.planName,
         costMonthly: deal.costMonthly,
         costAnnual: deal.costMonthly * 12,
-        savingAnnual: 60.00 // Simulated annual savings
+        savingAnnual: 60.00
       };
       sessionStorage.setItem('uswitch_temp_switch', JSON.stringify(tempSwitchInfo));
       router.push('/login?redirect=/dashboard');
@@ -106,31 +103,39 @@ function SimOnlyDeals() {
     }
   };
 
+  const filteredDeals = deals.filter(deal => {
+    if (selectedProvider !== 'All' && !deal.providerName.toLowerCase().includes(selectedProvider.toLowerCase())) return false;
+    if (minData === 50 && deal.dataGb !== -1 && deal.dataGb < 50) return false;
+    if (minData === -1 && deal.dataGb !== -1) return false;
+    if (deal.costMonthly > maxPrice) return false;
+    return true;
+  });
+
   return (
-    <div className="container" style={{ padding: '40px 0', flex: 1 }}>
-      <div className="results-header-summary">
-        <div>
-          <h2>Compare SIM Only Deals</h2>
-          <p style={{ marginTop: '4px' }}>
-            Find cheap unlimited data contracts, monthly rolling plans, and top UK network coverage.
+    <div style={{ background: '#f8fafc', padding: '40px 0', minHeight: 'calc(100vh - 76px)' }}>
+      <div className="container">
+        <div className="section-header" style={{ textAlign: 'left', margin: '0 0 32px' }}>
+          <span className="section-tag">SIM Only Deals</span>
+          <h2 style={{ fontSize: '2rem' }}>Compare 5G SIM Only Contracts</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', marginTop: '6px' }}>
+            Keep your existing phone and switch to cheap 30-day rolling or 12-month SIM contracts.
           </p>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex-center animate-pulse" style={{ height: '300px', flexDirection: 'column', gap: '16px' }}>
-          <Smartphone size={48} className="tracker-icon" />
-          <h3>Retrieving best SIM deals...</h3>
-        </div>
-      ) : (
-        <div className="results-grid">
-          
-          {/* Filters Sidebar */}
-          <aside className="sidebar-filters">
-            <div className="filter-section">
-              <span className="filter-title">Filter by Network</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '32px' }}>
+          {/* Filters */}
+          <aside style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '24px', height: 'fit-content' }}>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', marginBottom: '16px', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Filter size={16} color="var(--brand-accent)" /> Filter SIMs
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                Network Provider
+              </label>
               <select 
                 className="form-control"
+                style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontWeight: 600 }}
                 value={selectedProvider}
                 onChange={(e) => setSelectedProvider(e.target.value)}
               >
@@ -139,131 +144,76 @@ function SimOnlyDeals() {
                 <option value="O2">O2 Mobile</option>
                 <option value="Vodafone">Vodafone</option>
                 <option value="Three">Three Mobile</option>
-                <option value="Lyca">Lyca Mobile</option>
-                <option value="Smarty">Smarty</option>
+                <option value="voxi">VOXI</option>
+                <option value="Smarty">SMARTY</option>
               </select>
             </div>
 
-            <div className="filter-section">
-              <span className="filter-title">Minimum Data</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="data" 
-                    checked={minData === 0} 
-                    onChange={() => setMinData(0)} 
-                  />
-                  <span>Any Data</span>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                Data Allowance
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
+                <label style={{ display: 'flex', gap: '8px', cursor: 'pointer' }}>
+                  <input type="radio" name="simData" checked={minData === 0} onChange={() => setMinData(0)} /> Any Data
                 </label>
-                <label className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="data" 
-                    checked={minData === 50} 
-                    onChange={() => setMinData(50)} 
-                  />
-                  <span>50GB or more</span>
+                <label style={{ display: 'flex', gap: '8px', cursor: 'pointer' }}>
+                  <input type="radio" name="simData" checked={minData === 50} onChange={() => setMinData(50)} /> 50GB or more
                 </label>
-                <label className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="data" 
-                    checked={minData === -1} 
-                    onChange={() => setMinData(-1)} 
-                  />
-                  <span>Unlimited Data</span>
+                <label style={{ display: 'flex', gap: '8px', cursor: 'pointer' }}>
+                  <input type="radio" name="simData" checked={minData === -1} onChange={() => setMinData(-1)} /> Unlimited Data
                 </label>
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <span className="filter-title">Max Monthly Price</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>£5</span>
-                <input 
-                  type="range" 
-                  min={5} 
-                  max={30} 
-                  value={maxPrice} 
-                  onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-                  style={{ flex: 1, accentColor: 'var(--brand-accent)' }}
-                />
-                <span>£{maxPrice}</span>
-              </div>
-            </div>
-
-            <div className="filter-section" style={{ border: 'none' }}>
-              <div style={{ display: 'flex', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Keep your existing phone number easily by texting 'PAC' to 65075 to switch networks seamlessly.</span>
               </div>
             </div>
           </aside>
 
-          {/* Deals List */}
-          <section className="results-list">
-            {deals
-              .filter(deal => {
-                if (selectedProvider !== 'All' && !deal.providerName.toLowerCase().includes(selectedProvider.toLowerCase())) return false;
-                if (minData === 50 && deal.dataGb !== -1 && deal.dataGb < 50) return false;
-                if (minData === -1 && deal.dataGb !== -1) return false;
-                if (deal.costMonthly > maxPrice) return false;
-                return true;
-              })
-              .map((deal, idx) => (
+          {/* Deals */}
+          <div>
+            {loading ? (
+              <div className="flex-center animate-pulse" style={{ height: '300px', flexDirection: 'column', gap: '16px' }}>
+                <Smartphone size={48} color="var(--brand-accent)" />
+                <h3>Finding best SIM plans...</h3>
+              </div>
+            ) : (
+              filteredDeals.map((deal, idx) => (
                 <div key={idx} className="deal-card">
-                  {idx === 0 && (
-                    <span className="deal-badge cheapest">Popular Choice</span>
-                  )}
-                  
-                  <div className="deal-logo-col">
-                    <span className="deal-supplier">{deal.providerName}</span>
-                    <span className="deal-plan-name">{deal.planName}</span>
-                    <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {deal.features.map((feat: string, fidx: number) => (
-                        <span key={fidx} style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-sm)', backgroundColor: '#edf2f7', color: 'var(--text-muted)' }}>
-                          {feat}
-                        </span>
-                      ))}
+                  <div className="deal-provider-info">
+                    <div className="provider-logo-badge">{deal.providerName}</div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{deal.planName}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--brand-accent)', fontWeight: 700, marginTop: '4px' }}>⚡ 5G Included</span>
+                  </div>
+
+                  <div className="deal-specs-grid">
+                    <div className="spec-item">
+                      <span className="spec-label">Monthly Data</span>
+                      <span className="spec-value" style={{ color: 'var(--brand-accent)' }}>
+                        {deal.dataGb === -1 ? 'Unlimited' : `${deal.dataGb} GB`}
+                      </span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Contract Term</span>
+                      <span className="spec-value">{deal.contractLength === 1 ? '30-Day Rolling' : `${deal.contractLength} Months`}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Upfront Fee</span>
+                      <span className="spec-value">FREE</span>
                     </div>
                   </div>
 
-                  <div className="deal-info-col">
-                    <span className="deal-info-label">Monthly Data</span>
-                    <span className="deal-info-value" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '1.25rem' }}>
-                      {deal.dataGb === -1 ? 'Unlimited' : `${deal.dataGb} GB`}
-                    </span>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--brand-accent)', fontWeight: '600' }}>5G Enabled</span>
-                  </div>
-
-                  <div className="deal-info-col">
-                    <span className="deal-info-label">Contract Term</span>
-                    <span className="deal-info-value" style={{ display: 'block' }}>
-                      {deal.contractLength === 1 ? 'Rolling Contract' : `${deal.contractLength} Months`}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      No upfront costs
-                    </span>
-                  </div>
-
                   <div className="deal-price-col">
-                    <span className="deal-price-monthly">£{deal.costMonthly.toFixed(2)}</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ month</span>
-                    <button 
-                      onClick={() => handleSwitchDeal(deal)}
-                      className="btn-primary" 
-                      style={{ padding: '10px 16px', fontSize: '0.9rem', marginTop: '12px', width: '100%' }}
-                    >
+                    <div className="deal-price">
+                      £{deal.costMonthly} <span>/mo</span>
+                    </div>
+                    <button onClick={() => handleSwitchDeal(deal)} className="btn-get-deal">
                       Get SIM <ArrowRight size={16} />
                     </button>
                   </div>
                 </div>
-              ))}
-          </section>
-          
+              ))
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

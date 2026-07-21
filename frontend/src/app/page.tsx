@@ -1,218 +1,363 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Zap, Wifi, Smartphone, Star, ShieldCheck, HelpCircle, ArrowRight } from 'lucide-react';
+import { 
+  Wifi, Zap, Smartphone, ShieldCheck, Landmark, Search, ArrowRight, 
+  CheckCircle2, Star, Shield, TrendingUp, HelpCircle, ChevronRight, Gauge
+} from 'lucide-react';
 
-export default function Home() {
+export default function HomePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'energy' | 'broadband' | 'sim' | 'mobile'>('energy');
+  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
   const [postcode, setPostcode] = useState('');
-  const [error, setError] = useState('');
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePostcodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postcode || postcode.trim().length < 3) {
-      setError('Please enter a valid postcode');
-      return;
-    }
-    setError('');
-    const formattedPostcode = encodeURIComponent(postcode.trim().toUpperCase());
+    if (!postcode.trim()) return;
     
-    if (activeTab === 'energy') {
-      router.push(`/energy/journey?postcode=${formattedPostcode}`);
-    } else if (activeTab === 'broadband') {
-      router.push(`/broadband/results?postcode=${formattedPostcode}`);
-    } else if (activeTab === 'sim') {
-      router.push(`/sim-only?postcode=${formattedPostcode}`);
+    if (activeTab === 'broadband') {
+      router.push(`/broadband/results?postcode=${encodeURIComponent(postcode)}`);
+    } else if (activeTab === 'energy') {
+      router.push(`/energy?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'mobile') {
-      router.push(`/mobile-phones?postcode=${formattedPostcode}`);
+      router.push(`/sim-only?postcode=${encodeURIComponent(postcode)}`);
+    } else if (activeTab === 'insurance') {
+      router.push(`/insurance?postcode=${encodeURIComponent(postcode)}`);
+    } else {
+      router.push(`/banking?postcode=${encodeURIComponent(postcode)}`);
     }
   };
+
+  const categories = [
+    {
+      id: 'broadband',
+      title: 'Broadband & TV',
+      desc: 'Compare superfast fibre broadband & TV bundles from Sky, Virgin, BT and more.',
+      icon: <Wifi size={28} />,
+      badge: 'Save up to £480/yr',
+      href: '/broadband',
+      color: '#00b050'
+    },
+    {
+      id: 'energy',
+      title: 'Gas & Electricity',
+      desc: 'Switch energy suppliers in under 5 minutes and lock in fixed rates.',
+      icon: <Zap size={28} />,
+      badge: 'Fixed & Green Tariffs',
+      href: '/energy',
+      color: '#eab308'
+    },
+    {
+      id: 'mobile',
+      title: 'Mobile & SIM Only',
+      desc: 'Find the cheapest SIM only deals & latest smartphone contracts.',
+      icon: <Smartphone size={28} />,
+      badge: 'Unlimited 5G Data',
+      href: '/sim-only',
+      color: '#3b82f6'
+    },
+    {
+      id: 'insurance',
+      title: 'Car & Home Insurance',
+      desc: 'Compare quotes from over 100 top UK insurers in one quick search.',
+      icon: <ShieldCheck size={28} />,
+      badge: 'Save up to £319',
+      href: '/insurance',
+      color: '#8b5cf6'
+    },
+    {
+      id: 'banking',
+      title: 'Cards & Personal Loans',
+      desc: 'Compare 0% balance transfer credit cards and low interest loans.',
+      icon: <Landmark size={28} />,
+      badge: 'Check Eligibility',
+      href: '/banking',
+      color: '#ec4899'
+    }
+  ];
+
+  const topDeals = [
+    {
+      category: 'Broadband',
+      provider: 'Virgin Media',
+      title: 'M250 Fibre Broadband',
+      speed: '264 Mbps',
+      contract: '18 Months',
+      price: '28.00',
+      tag: 'Best Speed Deal'
+    },
+    {
+      category: 'Broadband',
+      provider: 'Sky',
+      title: 'Ultrafast Fibre + Sky TV',
+      speed: '145 Mbps',
+      contract: '18 Months',
+      price: '39.00',
+      tag: 'Popular Bundle'
+    },
+    {
+      category: 'Mobile',
+      provider: 'voxi',
+      title: 'Unlimited 5G Data SIM',
+      speed: '5G Speed',
+      contract: '1 Month Flex',
+      price: '12.00',
+      tag: 'No Contract'
+    }
+  ];
+
+  const faqs = [
+    {
+      q: 'Is Uswitch completely free to use?',
+      a: 'Yes, Uswitch is 100% free for customers. We earn a commission from energy suppliers, broadband providers, and financial institutions when you successfully switch through our site.'
+    },
+    {
+      q: 'Will my energy or broadband connection be interrupted when I switch?',
+      a: 'No! Your physical supply remains continuous. There is no downtime or loss of power/internet connection during the switching process.'
+    },
+    {
+      q: 'How long does a broadband switch take?',
+      a: 'Most broadband switches take around 10 to 14 working days. Your new provider will handle transferring your line and contacting your old provider for you.'
+    },
+    {
+      q: 'What is the Utrack Energy Tracker?',
+      a: 'Utrack is Uswitch’s free smart meter app integration. It securely syncs with your smart meter to show your real-time electricity and gas usage, spot spikes, and recommend personalized lower tariffs.'
+    }
+  ];
 
   return (
     <div>
       {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-bg-shapes">
-          {/* Decorative Grid SVG */}
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
-        
-        <div className="container" style={{ position: 'relative', zIndex: 5 }}>
-          <h1>Doing more to get you a better deal</h1>
-          <p>Compare deals on energy, broadband, and mobile bills to start saving today.</p>
-        </div>
-      </section>
+      <section className="hero-wrapper">
+        <div className="container">
+          <div className="hero-grid">
+            {/* Left Content */}
+            <div>
+              <div className="hero-badge">
+                <ShieldCheck size={16} /> Ofgem Accredited & UK's #1 Comparison Service
+              </div>
+              <h1 className="hero-title">
+                Switch household bills. <span>Save hundreds.</span>
+              </h1>
+              <p className="hero-subtitle">
+                Join over 20 million UK households who have saved money on Broadband, Energy, Mobile & Insurance with Uswitch.
+              </p>
 
-      {/* Hero Tabbed Widget */}
-      <div className="container">
-        <div className="hero-card">
-          <div className="search-tabs">
-            <button 
-              className={`search-tab ${activeTab === 'energy' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('energy'); setError(''); }}
-            >
-              <Zap size={18} />
-              Energy
-            </button>
-            <button 
-              className={`search-tab ${activeTab === 'broadband' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('broadband'); setError(''); }}
-            >
-              <Wifi size={18} />
-              Broadband
-            </button>
-            <button 
-              className={`search-tab ${activeTab === 'sim' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('sim'); setError(''); }}
-            >
-              <Smartphone size={18} />
-              SIM Only
-            </button>
-            <button 
-              className={`search-tab ${activeTab === 'mobile' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('mobile'); setError(''); }}
-            >
-              <Smartphone size={18} />
-              Mobiles
-            </button>
-          </div>
+              <div style={{ display: 'flex', gap: '24px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={18} color="#00b050" /> Fast & Free Switch</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={18} color="#00b050" /> No hidden fees</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={18} color="#00b050" /> Official Guarantee</span>
+              </div>
+            </div>
 
-          <div className="search-tab-content">
-            <form onSubmit={handleSubmit}>
-              <h3 style={{ marginBottom: '16px', color: '#0f2942' }}>
-                {activeTab === 'energy' && 'Compare gas & electricity deals to find your savings'}
-                {activeTab === 'broadband' && 'Compare fibre broadband & TV packages in your area'}
-                {activeTab === 'sim' && 'Find the best SIM-only monthly deals'}
-                {activeTab === 'mobile' && 'Find handset contracts on popular networks'}
-              </h3>
-              
-              <div className="search-input-wrapper">
-                <div className="search-input-field">
-                  <div className="search-input-icon">
-                    {activeTab === 'energy' && <Zap size={20} />}
-                    {activeTab === 'broadband' && <Wifi size={20} />}
-                    {activeTab === 'sim' && <Smartphone size={20} />}
-                    {activeTab === 'mobile' && <Smartphone size={20} />}
-                  </div>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter your postcode (e.g. SW1A 1AA)"
-                    value={postcode}
-                    onChange={(e) => setPostcode(e.target.value)}
-                  />
-                  {error && <span style={{ color: 'red', fontSize: '0.85rem', marginTop: '6px', display: 'block' }}>{error}</span>}
-                </div>
-                <button type="submit" className="btn-primary" style={{ padding: '16px 36px', fontSize: '1rem' }}>
-                  Compare deals
+            {/* Right Interactive Calculator Card */}
+            <div className="hero-calc-card">
+              <div className="calc-tab-list">
+                <button 
+                  className={`calc-tab-btn ${activeTab === 'broadband' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('broadband')}
+                >
+                  <Wifi size={14} /> Broadband
+                </button>
+                <button 
+                  className={`calc-tab-btn ${activeTab === 'energy' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('energy')}
+                >
+                  <Zap size={14} /> Energy
+                </button>
+                <button 
+                  className={`calc-tab-btn ${activeTab === 'mobile' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('mobile')}
+                >
+                  <Smartphone size={14} /> Mobile
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      </div>
 
-      {/* Trust Score Section */}
-      <section className="container">
-        <div className="trust-section">
-          <div className="trust-item">
-            <span className="trust-text" style={{ fontWeight: 'bold' }}>Excellent</span>
-            <div className="trust-stars">
-              <Star size={18} fill="currentColor" />
-              <Star size={18} fill="currentColor" />
-              <Star size={18} fill="currentColor" />
-              <Star size={18} fill="currentColor" />
-              <Star size={18} fill="currentColor" />
-            </div>
-            <span className="trust-text">TrustScore 4.7 | 45,000+ reviews</span>
-          </div>
-        </div>
-      </section>
+              <form onSubmit={handlePostcodeSubmit} className="postcode-form">
+                <label style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--brand-primary)' }}>
+                  Enter your UK Postcode to compare deals in your area
+                </label>
+                <div className="postcode-input-group">
+                  <Search className="postcode-icon" size={20} />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. SW1A 1AA or M1 1AG"
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.target.value)}
+                    className="postcode-input"
+                    required
+                  />
+                </div>
 
-      {/* Products Grid Section */}
-      <section className="products-section container">
-        <div className="section-header">
-          <h2>Compare and save today</h2>
-          <p>Select a product to start comparing and find a cheaper deal.</p>
-        </div>
-        
-        <div className="products-grid">
-          <div className="product-card">
-            <div className="product-icon">
-              <Zap size={24} />
-            </div>
-            <h3>Gas & Electricity</h3>
-            <p>Save money by switching energy providers or checking out new fixed rate plans.</p>
-            <button onClick={() => { setActiveTab('energy'); window.scrollTo({top: 200, behavior: 'smooth'}); }} className="btn-link">
-              Compare energy <ArrowRight size={16} />
-            </button>
-          </div>
+                <button type="submit" className="btn-hero-action">
+                  Compare {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Deals <ArrowRight size={18} />
+                </button>
+              </form>
 
-          <div className="product-card">
-            <div className="product-icon">
-              <Wifi size={24} />
+              <div className="calc-guarantee">
+                <Shield size={14} color="#00b050" /> Takes under 2 minutes • 100% Free Service
+              </div>
             </div>
-            <h3>Broadband & TV</h3>
-            <p>Check fibre availability and compare TV package bundles on top UK providers.</p>
-            <button onClick={() => { setActiveTab('broadband'); window.scrollTo({top: 200, behavior: 'smooth'}); }} className="btn-link">
-              Compare broadband <ArrowRight size={16} />
-            </button>
-          </div>
-
-          <div className="product-card">
-            <div className="product-icon">
-              <Smartphone size={24} />
-            </div>
-            <h3>Mobiles & SIMs</h3>
-            <p>Discover the latest handset contracts and cheap unlimited data SIMs.</p>
-            <button onClick={() => { setActiveTab('sim'); window.scrollTo({top: 200, behavior: 'smooth'}); }} className="btn-link">
-              Compare SIMs <ArrowRight size={16} />
-            </button>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Uswitch Section */}
-      <section style={{ backgroundColor: '#ffffff', padding: '80px 0', borderTop: '1px solid var(--border-color)' }}>
+      {/* Category Services Grid */}
+      <section className="section-padding">
         <div className="container">
           <div className="section-header">
-            <h2>Why compare with Uswitch?</h2>
-            <p>We do the hard work for you to make switching quick, easy, and secure.</p>
+            <span className="section-tag">Compare Services</span>
+            <h2>One platform for all your household bills</h2>
+            <p className="section-subtitle">
+              Select a service below to start comparing rates, checking availability, and locking in lower prices today.
+            </p>
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', marginTop: '48px' }}>
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(28,184,92,0.1)', color: 'var(--brand-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ShieldCheck size={32} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem' }}>100% Free & Independent</h3>
-              <p style={{ maxWidth: '300px' }}>Our service is completely free to use. We are impartial and independent, ensuring you find the right deals.</p>
-            </div>
-            
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(28,184,92,0.1)', color: 'var(--brand-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Star size={32} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem' }}>Helped Millions of Customers</h3>
-              <p style={{ maxWidth: '300px' }}>Over the last 20 years, we have helped millions of households save money on their monthly household bills.</p>
-            </div>
 
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(28,184,92,0.1)', color: 'var(--brand-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <HelpCircle size={32} />
+          <div className="category-grid">
+            {categories.map((cat) => (
+              <Link key={cat.id} href={cat.href} className="category-card">
+                <div>
+                  <div className="category-card-top">
+                    <div className="category-icon-wrapper" style={{ color: cat.color, background: `${cat.color}15` }}>
+                      {cat.icon}
+                    </div>
+                    <span className="category-badge" style={{ color: cat.color, background: `${cat.color}15` }}>
+                      {cat.badge}
+                    </span>
+                  </div>
+                  <h3 className="category-card-title">{cat.title}</h3>
+                  <p className="category-card-desc">{cat.desc}</p>
+                </div>
+                <div className="category-card-link">
+                  Compare Deals <ChevronRight size={16} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Deals Teaser Section */}
+      <section className="section-padding" style={{ background: '#f1f5f9' }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">Popular Deals</span>
+            <h2>Top Recommended Household Offers</h2>
+            <p className="section-subtitle">Hand-picked broadband and mobile packages with maximum customer satisfaction.</p>
+          </div>
+
+          <div>
+            {topDeals.map((deal, idx) => (
+              <div key={idx} className="deal-card">
+                <div className="deal-provider-info">
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-accent)', textTransform: 'uppercase' }}>
+                    {deal.category} • {deal.tag}
+                  </span>
+                  <div className="provider-logo-badge">{deal.provider}</div>
+                  <div className="deal-rating">
+                    <Star size={14} fill="#eab308" color="#eab308" /> 4.8 / 5 Customer Rating
+                  </div>
+                </div>
+
+                <div className="deal-specs-grid">
+                  <div className="spec-item">
+                    <span className="spec-label">Package</span>
+                    <span className="spec-value">{deal.title}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-label">Speed / Data</span>
+                    <span className="spec-value">{deal.speed}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-label">Contract</span>
+                    <span className="spec-value">{deal.contract}</span>
+                  </div>
+                </div>
+
+                <div className="deal-price-col">
+                  <div className="deal-price">
+                    £{deal.price} <span>/mo</span>
+                  </div>
+                  <Link href="/broadband" className="btn-get-deal">
+                    View Deal
+                  </Link>
+                </div>
               </div>
-              <h3 style={{ fontSize: '1.2rem' }}>Quick & Seamless Process</h3>
-              <p style={{ maxWidth: '300px' }}>Enter your postcode, choose a deal, and we will take care of the entire transition process for you.</p>
-            </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust & Provider Logos */}
+      <section className="section-padding">
+        <div className="container" style={{ textAlign: 'center' }}>
+          <h3 style={{ marginBottom: '32px', color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>
+            COMPARE LEADING UK PROVIDERS IN ONE PLACE
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '40px', opacity: 0.8 }}>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#e20074' }}>T-MOBILE</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#001080' }}>VIRGIN MEDIA</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0072c6' }}>SKY</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#5514b4' }}>BT FIBRE</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>OCTOPUS ENERGY</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000' }}>VODAFONE</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#2563eb' }}>O2</span>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQs Section */}
+      <section className="section-padding" style={{ background: '#ffffff', borderTop: '1px solid var(--border-color)' }}>
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <div className="section-header">
+            <span className="section-tag">Help & FAQs</span>
+            <h2>Frequently Asked Questions</h2>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {faqs.map((faq, index) => (
+              <div 
+                key={index}
+                style={{ 
+                  border: '1px solid var(--border-color)', 
+                  borderRadius: 'var(--radius-md)', 
+                  overflow: 'hidden',
+                  background: 'var(--bg-card)'
+                }}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  style={{
+                    width: '100%',
+                    padding: '20px 24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    color: 'var(--brand-primary)',
+                    textAlign: 'left'
+                  }}
+                >
+                  {faq.q}
+                  <ChevronRight 
+                    size={20} 
+                    style={{ 
+                      transform: openFaq === index ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease'
+                    }} 
+                  />
+                </button>
+                {openFaq === index && (
+                  <div style={{ padding: '0 24px 20px', color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>

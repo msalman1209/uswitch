@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Wifi, Info, ShieldCheck, ArrowRight, Clock, Award } from 'lucide-react';
+import { Wifi, Info, ShieldCheck, ArrowRight, Clock, Award, Star, Filter, Check } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
 
 export default function BroadbandResultsPage() {
   return (
-    <React.Suspense fallback={<div className="flex-center animate-pulse" style={{ height: '300px' }}>Loading...</div>}>
+    <React.Suspense fallback={<div className="flex-center animate-pulse" style={{ height: '400px' }}>Loading deals...</div>}>
       <BroadbandResults />
     </React.Suspense>
   );
@@ -44,11 +44,10 @@ function BroadbandResults() {
           })
         });
         const data = await response.json();
-        setDeals(data.results.deals);
+        setDeals(data.results.deals || []);
         setComparisonId(data.comparisonId);
       } catch (error) {
         console.error('Error fetching broadband deals:', error);
-        alert('Failed to connect to the broadband comparison service.');
       } finally {
         setLoading(false);
       }
@@ -61,7 +60,6 @@ function BroadbandResults() {
     const token = localStorage.getItem('uswitch_token');
 
     if (!token) {
-      // Save details to session storage temporarily
       const tempSwitchInfo = {
         comparisonId,
         category: 'broadband',
@@ -69,7 +67,7 @@ function BroadbandResults() {
         planName: deal.planName,
         costMonthly: deal.costMonthly,
         costAnnual: deal.costMonthly * 12 + (deal.setupCost || 0),
-        savingAnnual: 120.00 // Simulated annual saving vs standard variable contract
+        savingAnnual: 140.00
       };
       sessionStorage.setItem('uswitch_temp_switch', JSON.stringify(tempSwitchInfo));
       router.push('/login?redirect=/dashboard');
@@ -90,12 +88,12 @@ function BroadbandResults() {
           planName: deal.planName,
           costMonthly: deal.costMonthly,
           costAnnual: deal.costMonthly * 12 + (deal.setupCost || 0),
-          savingAnnual: 120.00
+          savingAnnual: 140.00
         })
       });
 
       if (response.ok) {
-        alert(`Successfully initiated switch to ${deal.providerName}! Redirecting to dashboard.`);
+        alert(`Successfully initiated switch to ${deal.providerName}! Redirecting to your dashboard.`);
         router.push('/dashboard');
       } else {
         const errorData = await response.json();
@@ -107,154 +105,153 @@ function BroadbandResults() {
     }
   };
 
+  const filteredDeals = deals.filter(deal => {
+    if (minSpeed > 0 && deal.speedMbps < minSpeed) return false;
+    if (filterTvOnly && deal.type !== 'tv-bundle') return false;
+    if (deal.contractLength > maxContractLength) return false;
+    return true;
+  });
+
   return (
-    <div className="container" style={{ padding: '40px 0', flex: 1 }}>
-      <div className="results-header-summary">
-        <div>
-          <h2>Broadband deals in your area</h2>
-          <p style={{ marginTop: '4px' }}>
-            Showing broadband packages available for postcode <strong>{postcode}</strong>.
-          </p>
+    <div style={{ background: '#f8fafc', minHeight: 'calc(100vh - 76px)', padding: '40px 0' }}>
+      <div className="container">
+        {/* Results Banner */}
+        <div style={{ background: '#ffffff', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '24px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
+              Broadband packages for <span style={{ color: 'var(--brand-accent)' }}>{postcode}</span>
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
+              We found {filteredDeals.length} available broadband & TV options in your neighborhood.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={() => router.push('/broadband')} style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-accent)', padding: '8px 16px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-color)' }}>
+              Change Postcode
+            </button>
+          </div>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex-center animate-pulse" style={{ height: '300px', flexDirection: 'column', gap: '16px' }}>
-          <Wifi size={48} className="tracker-icon" />
-          <h3>Searching for deals in your neighborhood...</h3>
-        </div>
-      ) : (
-        <div className="results-grid">
-          
-          {/* Filters Sidebar */}
-          <aside className="sidebar-filters">
-            <div className="filter-section">
-              <span className="filter-title">Minimum Speed</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="speed" 
-                    checked={minSpeed === 0} 
-                    onChange={() => setMinSpeed(0)} 
-                  />
-                  <span>Any Speed</span>
+        {loading ? (
+          <div className="flex-center animate-pulse" style={{ height: '300px', flexDirection: 'column', gap: '16px' }}>
+            <Wifi size={48} color="var(--brand-accent)" />
+            <h3>Checking speed coverage for {postcode}...</h3>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '32px' }}>
+            {/* Sidebar Filters */}
+            <aside style={{ background: '#ffffff', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '24px', height: 'fit-content' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '1rem', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                <Filter size={18} color="var(--brand-accent)" /> Filter Broadband
+              </div>
+
+              {/* Speed Filter */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
+                  Minimum Speed
                 </label>
-                <label className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="speed" 
-                    checked={minSpeed === 60} 
-                    onChange={() => setMinSpeed(60)} 
-                  />
-                  <span>Superfast (60+ Mbps)</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {[
+                    { label: 'Any Speed', val: 0 },
+                    { label: 'Fibre (30+ Mbps)', val: 30 },
+                    { label: 'Superfast (65+ Mbps)', val: 65 },
+                    { label: 'Ultrafast (200+ Mbps)', val: 200 }
+                  ].map((s) => (
+                    <label key={s.val} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>
+                      <input type="radio" name="speed" checked={minSpeed === s.val} onChange={() => setMinSpeed(s.val)} />
+                      <span>{s.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Package Type Filter */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
+                  Package Features
                 </label>
-                <label className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="speed" 
-                    checked={minSpeed === 500} 
-                    onChange={() => setMinSpeed(500)} 
-                  />
-                  <span>Ultrafast (500+ Mbps)</span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>
+                  <input type="checkbox" checked={filterTvOnly} onChange={(e) => setFilterTvOnly(e.target.checked)} />
+                  <span>TV & Movie Bundles</span>
                 </label>
               </div>
-            </div>
 
-            <div className="filter-section">
-              <span className="filter-title">Package Type</span>
-              <label className="filter-option">
-                <input 
-                  type="checkbox" 
-                  checked={filterTvOnly} 
-                  onChange={(e) => setFilterTvOnly(e.target.checked)} 
-                />
-                <span>Include TV Bundles</span>
-              </label>
-            </div>
-
-            <div className="filter-section">
-              <span className="filter-title">Max Contract Length</span>
-              <select 
-                className="form-control"
-                value={maxContractLength}
-                onChange={(e) => setMaxContractLength(parseInt(e.target.value))}
-              >
-                <option value={24}>Any contract (Up to 24m)</option>
-                <option value={18}>18 months or less</option>
-                <option value={12}>12 months or less</option>
-              </select>
-            </div>
-
-            <div className="filter-section" style={{ border: 'none' }}>
-              <div style={{ display: 'flex', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Switching broadband is simple. Most new providers coordinate the transfer, so you don't experience downtime.</span>
+              {/* Contract Length */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                  Max Contract Term
+                </label>
+                <select 
+                  className="form-control"
+                  style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontWeight: 600 }}
+                  value={maxContractLength}
+                  onChange={(e) => setMaxContractLength(parseInt(e.target.value))}
+                >
+                  <option value={24}>Up to 24 months</option>
+                  <option value={18}>18 months or less</option>
+                  <option value={12}>12 months or less</option>
+                </select>
               </div>
-            </div>
-          </aside>
+            </aside>
 
-          {/* Deals List */}
-          <section className="results-list">
-            {deals
-              .filter(deal => {
-                if (minSpeed > 0 && deal.speedMbps < minSpeed) return false;
-                if (filterTvOnly && deal.type !== 'tv-bundle') return false;
-                if (deal.contractLength > maxContractLength) return false;
-                return true;
-              })
-              .map((deal, idx) => (
-                <div key={idx} className="deal-card">
-                  {idx === 0 && (
-                    <span className="deal-badge">Top Recommendation</span>
-                  )}
-                  
-                  <div className="deal-logo-col">
-                    <span className="deal-supplier">{deal.providerName}</span>
-                    <span className="deal-plan-name">{deal.planName}</span>
-                    <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {deal.features.slice(0, 2).map((feat: string, fidx: number) => (
-                        <span key={fidx} style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-sm)', backgroundColor: '#edf2f7', color: 'var(--text-muted)' }}>
-                          {feat}
-                        </span>
-                      ))}
+            {/* Deals Column */}
+            <div>
+              {filteredDeals.length === 0 ? (
+                <div style={{ background: 'white', padding: '40px', textAlign: 'center', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                  <h3>No deals match your filter criteria</h3>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>Try adjusting your speed or contract length filter options.</p>
+                  <button onClick={() => { setMinSpeed(0); setFilterTvOnly(false); setMaxContractLength(24); }} className="btn-get-deal" style={{ marginTop: '16px' }}>
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                filteredDeals.map((deal, idx) => (
+                  <div key={idx} className="deal-card">
+                    {/* Provider Logo & Features */}
+                    <div className="deal-provider-info">
+                      <div className="provider-logo-badge">{deal.providerName}</div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{deal.planName}</span>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        {deal.features?.map((feat: string, fidx: number) => (
+                          <span key={fidx} style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-subtle)', color: 'var(--text-muted)', fontWeight: 600 }}>
+                            ✓ {feat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Specs Grid */}
+                    <div className="deal-specs-grid">
+                      <div className="spec-item">
+                        <span className="spec-label">Avg Speed</span>
+                        <span className="spec-value" style={{ color: 'var(--brand-accent)' }}>{deal.speedMbps} Mbps</span>
+                      </div>
+                      <div className="spec-item">
+                        <span className="spec-label">Contract</span>
+                        <span className="spec-value">{deal.contractLength} Months</span>
+                      </div>
+                      <div className="spec-item">
+                        <span className="spec-label">Setup Fee</span>
+                        <span className="spec-value">{deal.setupCost === 0 ? 'FREE' : `£${deal.setupCost}`}</span>
+                      </div>
+                    </div>
+
+                    {/* Price & Action */}
+                    <div className="deal-price-col">
+                      <div className="deal-price">
+                        £{deal.costMonthly} <span>/mo</span>
+                      </div>
+                      <button onClick={() => handleSwitchDeal(deal)} className="btn-get-deal">
+                        Switch To Deal <ArrowRight size={16} />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="deal-info-col">
-                    <span className="deal-info-label">Speed</span>
-                    <span className="deal-info-value" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Wifi size={14} className="tracker-icon" /> {deal.speedMbps} Mbps
-                    </span>
-                  </div>
-
-                  <div className="deal-info-col">
-                    <span className="deal-info-label">Setup & Term</span>
-                    <span className="deal-info-value" style={{ display: 'block' }}>
-                      {deal.setupCost === 0 ? 'Free setup' : `£${deal.setupCost} setup`}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {deal.contractLength} Month contract
-                    </span>
-                  </div>
-
-                  <div className="deal-price-col">
-                    <span className="deal-price-monthly">£{deal.costMonthly}</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ month</span>
-                    <button 
-                      onClick={() => handleSwitchDeal(deal)}
-                      className="btn-primary" 
-                      style={{ padding: '10px 16px', fontSize: '0.9rem', marginTop: '12px', width: '100%' }}
-                    >
-                      Switch Now <ArrowRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </section>
-          
-        </div>
-      )}
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
