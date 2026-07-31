@@ -216,28 +216,32 @@ h3 {
 .mega-menu {
   position: absolute;
   top: 100%;
-  left: -120px;
-  width: 780px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  width: max-content;
+  max-width: calc(100vw - 32px);
   background: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   box-shadow: var(--shadow-mega);
   padding: 24px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr) 220px;
-  gap: 20px;
+  display: flex;
+  gap: 24px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(8px);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: 1100;
 }
 
+.mega-menu > div:not(.mega-promo-box) {
+  min-width: 170px;
+}
+
 .nav-item:hover .mega-menu {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
   pointer-events: auto;
 }
 
@@ -305,6 +309,8 @@ h3 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: 210px;
+  flex-shrink: 0;
 }
 .mega-promo-title {
   font-size: 1rem;

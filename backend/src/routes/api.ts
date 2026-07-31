@@ -4,8 +4,6 @@ import { register, login, getProfile, updateProfile } from '../controllers/authC
 import {
   runEnergyComparison,
   runBroadbandComparison,
-  runSimComparison,
-  runMobileComparison,
   saveDeal,
   getSavedDeals,
   updateSavedDealStatus,
@@ -40,8 +38,6 @@ router.put('/auth/profile', authMiddleware, updateProfile);
 // Comparison Engine Routes
 router.post('/comparisons/energy', optionalAuth, runEnergyComparison);
 router.post('/comparisons/broadband', optionalAuth, runBroadbandComparison);
-router.post('/comparisons/sim', optionalAuth, runSimComparison);
-router.post('/comparisons/mobile', optionalAuth, runMobileComparison);
 
 // Saved Deals & Switching Routes
 router.post('/comparisons/save', authMiddleware, saveDeal);

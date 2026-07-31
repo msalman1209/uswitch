@@ -218,72 +218,14 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile & SIM Mega Menu */}
-            <div className="nav-item">
-              <Link href="/mobile-phones" className={`nav-link ${pathname.startsWith('/mobile-phones') || pathname.startsWith('/sim-only') ? 'active' : ''}`}>
-                Mobile & SIM <ChevronDown size={14} className="chevron-icon" />
-              </Link>
-              <div className="mega-menu">
-                <div>
-                  <div className="mega-column-title">Mobile Services</div>
-                  <div className="mega-link-list">
-                    <Link href="/sim-only" className="mega-link-item">
-                      <div className="mega-icon-box"><Smartphone size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">SIM Only Deals</span>
-                        <span className="mega-link-desc">Unlimited data from £6/mo</span>
-                      </div>
-                    </Link>
-                    <Link href="/mobile-phones" className="mega-link-item">
-                      <div className="mega-icon-box"><Smartphone size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Mobile Phone Contracts</span>
-                        <span className="mega-link-desc">iPhone, Samsung & Pixel</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
 
-                <div>
-                  <div className="mega-column-title">Popular Brands</div>
-                  <div className="mega-link-list">
-                    <Link href="/mobile-phones" className="mega-link-item">
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Apple iPhone 16 / 15</span>
-                      </div>
-                    </Link>
-                    <Link href="/mobile-phones" className="mega-link-item">
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Samsung Galaxy S24</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mega-column-title">Networks</div>
-                  <div className="mega-link-list">
-                    <Link href="/sim-only" className="mega-link-item"><span className="mega-link-title">O2, EE & Vodafone</span></Link>
-                    <Link href="/sim-only" className="mega-link-item"><span className="mega-link-title">Three & Sky Mobile</span></Link>
-                  </div>
-                </div>
-
-                <div className="mega-promo-box">
-                  <div>
-                    <div className="mega-promo-title">5G SIM Deals</div>
-                    <div className="mega-promo-desc">Get ultra-fast 5G speeds with 100GB data for just £8/month.</div>
-                  </div>
-                  <Link href="/sim-only" className="mega-promo-btn">Compare SIMs</Link>
-                </div>
-              </div>
-            </div>
 
             {/* Insurance Mega Menu */}
             <div className="nav-item">
               <Link href="/insurance" className={`nav-link ${pathname.startsWith('/insurance') ? 'active' : ''}`}>
                 Insurance <ChevronDown size={14} className="chevron-icon" />
               </Link>
-              <div className="mega-menu" style={{ width: '640px' }}>
+              <div className="mega-menu">
                 <div>
                   <div className="mega-column-title">Popular Insurance</div>
                   <div className="mega-link-list">
@@ -333,7 +275,7 @@ export default function Header() {
               <Link href="/banking" className={`nav-link ${pathname.startsWith('/banking') ? 'active' : ''}`}>
                 Banking <ChevronDown size={14} className="chevron-icon" />
               </Link>
-              <div className="mega-menu" style={{ width: '640px' }}>
+              <div className="mega-menu">
                 <div>
                   <div className="mega-column-title">Personal Finance</div>
                   <div className="mega-link-list">

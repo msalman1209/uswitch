@@ -4,8 +4,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Uswitch - Compare Broadband, Energy, Mobiles & Finance",
-  description: "Cloned version of Uswitch - Save money on your household bills by comparing broadband, gas & electricity, mobile deals, and more.",
+  title: "Uswitch - Compare Broadband, Energy & Finance",
+  description: "Cloned version of Uswitch - Save money on your household bills by comparing broadband, gas & electricity, and more.",
 };
 
 export default function RootLayout({

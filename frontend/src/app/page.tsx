@@ -10,7 +10,7 @@ import {
 
 export default function HomePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
+  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'insurance' | 'banking'>('broadband');
   const [postcode, setPostcode] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -22,8 +22,6 @@ export default function HomePage() {
       router.push(`/broadband/results?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'energy') {
       router.push(`/energy?postcode=${encodeURIComponent(postcode)}`);
-    } else if (activeTab === 'mobile') {
-      router.push(`/sim-only?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'insurance') {
       router.push(`/insurance?postcode=${encodeURIComponent(postcode)}`);
     } else {
@@ -49,15 +47,6 @@ export default function HomePage() {
       badge: 'Fixed & Green Tariffs',
       href: '/energy',
       color: '#eab308'
-    },
-    {
-      id: 'mobile',
-      title: 'Mobile & SIM Only',
-      desc: 'Find the cheapest SIM only deals & latest smartphone contracts.',
-      icon: <Smartphone size={28} />,
-      badge: 'Unlimited 5G Data',
-      href: '/sim-only',
-      color: '#3b82f6'
     },
     {
       id: 'insurance',
@@ -97,15 +86,6 @@ export default function HomePage() {
       contract: '18 Months',
       price: '39.00',
       tag: 'Popular Bundle'
-    },
-    {
-      category: 'Mobile',
-      provider: 'voxi',
-      title: 'Unlimited 5G Data SIM',
-      speed: '5G Speed',
-      contract: '1 Month Flex',
-      price: '12.00',
-      tag: 'No Contract'
     }
   ];
 
@@ -143,7 +123,7 @@ export default function HomePage() {
                 Switch household bills. <span>Save hundreds.</span>
               </h1>
               <p className="hero-subtitle">
-                Join over 20 million UK households who have saved money on Broadband, Energy, Mobile & Insurance with Uswitch.
+                Join over 20 million UK households who have saved money on Broadband, Energy & Insurance with Uswitch.
               </p>
 
               <div style={{ display: 'flex', gap: '24px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -167,12 +147,6 @@ export default function HomePage() {
                   onClick={() => setActiveTab('energy')}
                 >
                   <Zap size={14} /> Energy
-                </button>
-                <button 
-                  className={`calc-tab-btn ${activeTab === 'mobile' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('mobile')}
-                >
-                  <Smartphone size={14} /> Mobile
                 </button>
               </div>
 
@@ -298,13 +272,10 @@ export default function HomePage() {
             COMPARE LEADING UK PROVIDERS IN ONE PLACE
           </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '40px', opacity: 0.8 }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#e20074' }}>T-MOBILE</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#001080' }}>VIRGIN MEDIA</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0072c6' }}>SKY</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#5514b4' }}>BT FIBRE</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>OCTOPUS ENERGY</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000' }}>VODAFONE</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#2563eb' }}>O2</span>
           </div>
         </div>
       </section>
