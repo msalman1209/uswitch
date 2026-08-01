@@ -146,6 +146,7 @@ h3 {
   align-items: center;
   justify-content: space-between;
   height: 100%;
+  position: relative;
 }
 
 .navbar-logo {
@@ -179,7 +180,7 @@ h3 {
 }
 
 .nav-item {
-  position: relative;
+  position: static;
   height: 100%;
   display: flex;
   align-items: center;
@@ -212,21 +213,22 @@ h3 {
   transform: rotate(180deg);
 }
 
-/* Mega Menu Dropdown */
+/* Mega Menu Dropdown - Centered on Header Container */
 .mega-menu {
   position: absolute;
   top: 100%;
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: max-content;
-  max-width: calc(100vw - 32px);
+  max-width: calc(100% - 32px);
   background: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   box-shadow: var(--shadow-mega);
-  padding: 24px;
+  padding: 28px;
   display: flex;
-  gap: 24px;
+  justify-content: space-between;
+  gap: 32px;
   opacity: 0;
   visibility: hidden;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);

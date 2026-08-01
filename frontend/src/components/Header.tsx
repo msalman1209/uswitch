@@ -297,8 +297,15 @@ export default function Header() {
                 </div>
 
                 <div>
-                  <div className="mega-column-title">Home Loans</div>
+                  <div className="mega-column-title">Merchant & Home Loans</div>
                   <div className="mega-link-list">
+                    <Link href="/banking" className="mega-link-item">
+                      <div className="mega-icon-box"><CreditCard size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Card Machines & Terminals</span>
+                        <span className="mega-link-desc">Stripe, Zettle & Worldpay</span>
+                      </div>
+                    </Link>
                     <Link href="/banking" className="mega-link-item">
                       <div className="mega-link-text"><span className="mega-link-title">Mortgages & Remortgage</span></div>
                     </Link>
