@@ -1524,3 +1524,288 @@ select.form-control {
   max-height: 90vh;
   overflow-y: auto;
 }
+
+
+/* ==========================================================================
+   USER DASHBOARD & UTILITY TRACKER STYLES
+   ========================================================================== */
+
+.dashboard-layout {
+  padding: 40px 0 80px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+@media (max-width: 960px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* Sidebar Navigation */
+.dashboard-nav {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 20px rgba(10, 25, 47, 0.04);
+  position: sticky;
+  top: 96px;
+}
+
+@media (max-width: 960px) {
+  .dashboard-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: static;
+  }
+}
+
+.dashboard-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 960px) {
+  .dashboard-nav-item {
+    width: auto;
+    flex: 1 1 calc(50% - 6px);
+  }
+}
+
+.dashboard-nav-item:hover {
+  background: #f8fafc;
+  color: #0a192f;
+  transform: translateX(3px);
+}
+
+.dashboard-nav-item.active {
+  background: #e6f7ec;
+  color: #00873d;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 176, 80, 0.15);
+}
+
+.dashboard-nav-item svg {
+  flex-shrink: 0;
+}
+
+/* Dashboard Content Area */
+.dashboard-content-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 40px;
+  box-shadow: 0 8px 30px rgba(10, 25, 47, 0.04);
+  min-height: 540px;
+}
+
+@media (max-width: 640px) {
+  .dashboard-content-card {
+    padding: 24px 20px;
+  }
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+.dashboard-welcome h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #0a192f;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-welcome p {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+/* Switches Tracker Cards */
+.tracker-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(10, 25, 47, 0.03);
+  transition: all 0.2s ease;
+}
+
+.tracker-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(10, 25, 47, 0.06);
+}
+
+.tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.tracker-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tracker-icon {
+  color: #00b050;
+}
+
+.tracker-supplier-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0a192f;
+  display: block;
+}
+
+.tracker-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.tracker-badge.active {
+  background: #e6f7ec;
+  color: #00873d;
+}
+
+.tracker-steps {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin: 36px 20px 24px;
+}
+
+.tracker-line {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  height: 4px;
+  background: #e2e8f0;
+  z-index: 1;
+  border-radius: 2px;
+}
+
+.tracker-line-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #00b050, #10b981);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.tracker-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 140px;
+  text-align: center;
+}
+
+.tracker-step-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #64748b;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.tracker-step.active .tracker-step-circle {
+  border-color: #00b050;
+  color: #00873d;
+  background: #e6f7ec;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 176, 80, 0.25);
+}
+
+.tracker-step.completed .tracker-step-circle {
+  border-color: #00b050;
+  background: #00b050;
+  color: #ffffff;
+}
+
+.tracker-step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.tracker-step.active .tracker-step-label,
+.tracker-step.completed .tracker-step-label {
+  color: #0a192f;
+  font-weight: 700;
+}
+
+/* NexTrack Chart Card */
+.chart-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 16px rgba(10, 25, 47, 0.03);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.chart-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0a192f;
+}

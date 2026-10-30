@@ -19,6 +19,13 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+// Handle JSON parse errors gracefully
+app.use((err, _req, res, next) => {
+    if (err instanceof SyntaxError && 'status' in err && err.status === 400) {
+        return res.status(400).json({ error: 'Invalid JSON payload format' });
+    }
+    next(err);
+});
 // Mount all unified API routes under /api
 app.use('/api', api_1.default);
 // Health check endpoint

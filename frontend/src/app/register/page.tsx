@@ -92,7 +92,19 @@ function Register() {
         {error && (
           <div className="alert-box warning" style={{ fontSize: '0.85rem', padding: '12px' }}>
             <Info size={16} />
-            <span>{error}</span>
+            <div>
+              {error === 'Email already registered' ? (
+                <span>
+                  Yeh email pehle se registered hai! Aap{' '}
+                  <Link href={`/login?email=${encodeURIComponent(email)}`} style={{ textDecoration: 'underline', fontWeight: 700, color: '#00b050' }}>
+                    Yahan Click Karke Sign In Karein
+                  </Link>{' '}
+                  ya koi doosra email use karein.
+                </span>
+              ) : (
+                <span>{error}</span>
+              )}
+            </div>
           </div>
         )}
 

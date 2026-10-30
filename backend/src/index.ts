@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 // Load environment variables first
 dotenv.config();
 
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { initDB } from './models';
 import apiRouter from './routes/api';
@@ -18,6 +18,14 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Handle JSON parse errors gracefully
+app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400) {
+    return res.status(400).json({ error: 'Invalid JSON payload format' });
+  }
+  next(err);
+});
 
 // Mount all unified API routes under /api
 app.use('/api', apiRouter);
