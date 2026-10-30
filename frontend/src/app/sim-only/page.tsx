@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Smartphone, Info, ShieldCheck, ArrowRight, Star, Award, Filter } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Smartphone, ArrowRight, Filter } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -16,7 +16,6 @@ export default function SimOnlyDealsPage() {
 
 function SimOnlyDeals() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [deals, setDeals] = useState<any[]>([]);
   const [comparisonId, setComparisonId] = useState<number | null>(null);
@@ -24,7 +23,7 @@ function SimOnlyDeals() {
   // Filters State
   const [selectedProvider, setSelectedProvider] = useState<string>('All');
   const [minData, setMinData] = useState<number>(0);
-  const [maxPrice, setMaxPrice] = useState<number>(30);
+  const maxPrice = 30;
 
   useEffect(() => {
     async function fetchSimDeals() {
@@ -33,7 +32,7 @@ function SimOnlyDeals() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('uswitch_token') || ''}`
+            'Authorization': `Bearer ${(localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token')) || ''}`
           },
           body: JSON.stringify({
             postcode: 'SW1A 1AA',
@@ -55,7 +54,7 @@ function SimOnlyDeals() {
   }, []);
 
   const handleSwitchDeal = async (deal: any) => {
-    const token = localStorage.getItem('uswitch_token');
+    const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
 
     if (!token) {
       const tempSwitchInfo = {
@@ -67,6 +66,7 @@ function SimOnlyDeals() {
         costAnnual: deal.costMonthly * 12,
         savingAnnual: 60.00
       };
+      sessionStorage.setItem('nexgen_temp_switch', JSON.stringify(tempSwitchInfo));
       sessionStorage.setItem('uswitch_temp_switch', JSON.stringify(tempSwitchInfo));
       router.push('/login?redirect=/dashboard');
       return;

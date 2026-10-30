@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
-  User, Zap, Wifi, LayoutDashboard, ArrowRightLeft, 
-  LineChart, Settings, Play, CheckCircle, RefreshCw, AlertTriangle, Info
+  Zap, Wifi, LayoutDashboard, ArrowRightLeft, 
+  Settings, Play, CheckCircle, RefreshCw, AlertTriangle, Info
 } from 'lucide-react';
 
 import {
@@ -19,7 +19,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -70,7 +70,7 @@ function Dashboard() {
   useEffect(() => {
     if (!mounted) return;
     
-    const token = localStorage.getItem('uswitch_token');
+    const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
     if (!token) {
       router.push('/login?redirect=/dashboard');
       return;
@@ -79,7 +79,7 @@ function Dashboard() {
     async function loadDashboardData() {
       try {
         // 1. Check for temporary switch in session storage first
-        const tempSwitch = sessionStorage.getItem('uswitch_temp_switch');
+        const tempSwitch = sessionStorage.getItem('nexgen_temp_switch') || sessionStorage.getItem('uswitch_temp_switch');
         if (tempSwitch) {
           const switchObj = JSON.parse(tempSwitch);
           const saveRes = await fetch(`${API_BASE}/comparisons/save`, {
@@ -93,6 +93,7 @@ function Dashboard() {
           if (saveRes.ok) {
             alert(`Your switch to ${switchObj.supplierName} has been synchronized and saved to your account!`);
           }
+          sessionStorage.removeItem('nexgen_temp_switch');
           sessionStorage.removeItem('uswitch_temp_switch');
         }
 
@@ -115,7 +116,7 @@ function Dashboard() {
         const switchesData = await switchesRes.json();
         setSwitches(switchesData);
 
-        // 4. Fetch Utrack Smart Meter Usage
+        // 4. Fetch NexTrack Smart Meter Usage
         const usageRes = await fetch(`${API_BASE}/utrack/usage`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -138,7 +139,7 @@ function Dashboard() {
   // Simulate advancing the switch timeline status
   const handleAdvanceSwitch = async (id: number, currentStatus: string) => {
     const nextStatus = currentStatus === 'saved' ? 'switching' : 'completed';
-    const token = localStorage.getItem('uswitch_token');
+    const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
     
     try {
       const response = await fetch(`${API_BASE}/deals/saved/${id}`, {
@@ -162,7 +163,7 @@ function Dashboard() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileSuccess('');
-    const token = localStorage.getItem('uswitch_token');
+    const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
     
     try {
       const response = await fetch(`${API_BASE}/auth/profile`, {
@@ -176,6 +177,7 @@ function Dashboard() {
       const data = await response.json();
       if (response.ok) {
         setProfile(data);
+        localStorage.setItem('nexgen_user', JSON.stringify(data));
         localStorage.setItem('uswitch_user', JSON.stringify(data));
         setProfileSuccess('Profile updated successfully!');
       } else {
@@ -192,7 +194,7 @@ function Dashboard() {
     return (
       <div className="flex-center animate-pulse" style={{ height: '400px', flexDirection: 'column', gap: '16px' }}>
         <RefreshCw size={48} className="tracker-icon" style={{ animation: 'spin 2s linear infinite' }} />
-        <h3>Loading your Uswitch Account...</h3>
+        <h3>Loading your NexGen Account...</h3>
       </div>
     );
   }
@@ -258,7 +260,7 @@ function Dashboard() {
             onClick={() => setActiveTab('utrack')}
           >
             <Zap size={18} />
-            Utrack Smart Meter
+            NexTrack Smart Meter
           </button>
           <button 
             className={`dashboard-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
@@ -421,7 +423,7 @@ function Dashboard() {
           {activeTab === 'utrack' && (
             <div>
               <div className="dashboard-header">
-                <h2>Utrack - Live Energy Tracker</h2>
+                <h2>NexTrack - Live Energy Tracker</h2>
                 <p>Simulating smart meter logs linking for electricity and gas consumption.</p>
               </div>
 
@@ -470,7 +472,7 @@ function Dashboard() {
               </div>
 
               {/* Energy Saving Tips */}
-              <h3 style={{ margin: '32px 0 16px 0' }}>Utrack smart suggestions</h3>
+              <h3 style={{ margin: '32px 0 16px 0' }}>NexTrack smart suggestions</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div className="card" style={{ padding: '16px', display: 'flex', gap: '12px' }}>
                   <AlertTriangle size={24} style={{ color: '#dd6b20', flexShrink: 0 }} />

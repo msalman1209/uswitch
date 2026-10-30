@@ -1,29 +1,35 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
+// Load environment variables first
+dotenv.config();
+
+import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { initDB } from './models';
 import apiRouter from './routes/api';
 
-// Load environment variables
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT: number = Number(process.env.PORT) || 5000;
 
-// Enable CORS with default settings (allow requests from frontend dev server)
+// Enable CORS with default settings
 app.use(cors({
-  origin: '*', // In production, replace with specific domain
+  origin: '*',
   credentials: true
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Mount all unified API routes under /api
 app.use('/api', apiRouter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date() });
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Global 404 handler
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ error: 'Endpoint not found' });
 });
 
 // Start DB & Express Server
@@ -31,10 +37,12 @@ async function startServer() {
   await initDB();
   
   app.listen(PORT, () => {
-    console.log(`[Uswitch API] Server is running on port ${PORT}`);
+    console.log(`[NexGen Power API] Server is running on port ${PORT}`);
   });
 }
 
-startServer().catch((err) => {
-  console.error('Server failed to start:', err);
+startServer().catch((err: unknown) => {
+  console.error('[NexGen Power API] Server failed to start:', err);
 });
+
+export default app;

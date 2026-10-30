@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wifi, Gauge, ShieldCheck, Search, Tv, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Wifi, Gauge, Search, Tv, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function BroadbandLanding() {
   const router = useRouter();

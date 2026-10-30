@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
   Wifi, Zap, Smartphone, ShieldCheck, Landmark, ChevronDown, 
   User, LogOut, LayoutDashboard, Flame, Sun, Tv, CreditCard, 
-  Car, Home, HeartPulse, Plane, Gauge, Sparkles, Menu, X, ArrowRight, Star
+  Car, Home, HeartPulse, Plane, Gauge, Sparkles, Menu, X,
+  PiggyBank, Shield, Key
 } from 'lucide-react';
 
 export default function Header() {
@@ -14,19 +15,42 @@ export default function Header() {
   const pathname = usePathname();
   const [user, setUser] = useState<{ firstName: string; lastName: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('uswitch_user');
+    const storedUser = localStorage.getItem('nexgen_user') || localStorage.getItem('uswitch_user');
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-      } catch (e) {
+      } catch {
         localStorage.removeItem('uswitch_user');
       }
     }
   }, [pathname]);
 
+  // Close mega menu on route change
+  useEffect(() => {
+    setActiveMenu(null);
+  }, [pathname]);
+
+  const handleMouseEnter = (menuName: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setActiveMenu(menuName);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setActiveMenu(null);
+    }, 150);
+  };
+
   const handleLogout = () => {
+    localStorage.removeItem('nexgen_token');
+    localStorage.removeItem('nexgen_user');
     localStorage.removeItem('uswitch_token');
     localStorage.removeItem('uswitch_user');
     setUser(null);
@@ -56,18 +80,32 @@ export default function Header() {
         <div className="container navbar-container">
           {/* Logo */}
           <Link href="/" className="navbar-logo">
-            U<span>switch</span>
+            Nex<span>Gen</span>
+            <span className="navbar-logo-sub" style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: '6px' }}>
+              Power Solutions
+            </span>
             <span className="logo-badge">UK</span>
           </Link>
 
           {/* Desktop Navigation with Mega-Menus */}
-          <div className="nav-menu">
+          <div className="nav-menu" onMouseLeave={handleMouseLeave}>
             {/* Broadband Mega Menu */}
-            <div className="nav-item">
-              <Link href="/broadband" className={`nav-link ${pathname.startsWith('/broadband') ? 'active' : ''}`}>
-                Broadband & TV <ChevronDown size={14} className="chevron-icon" />
+            <div 
+              className="nav-item"
+              onMouseEnter={() => handleMouseEnter('broadband')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link 
+                href="/broadband" 
+                className={`nav-link ${activeMenu === 'broadband' ? 'active-hover' : ''} ${pathname.startsWith('/broadband') ? 'active' : ''}`}
+              >
+                Broadband & TV <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'broadband' ? 'rotate-180' : ''}`} />
               </Link>
-              <div className="mega-menu">
+              <div 
+                className={`mega-menu ${activeMenu === 'broadband' ? 'is-open' : ''}`}
+                onMouseEnter={() => handleMouseEnter('broadband')}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div>
                   <div className="mega-column-title">Broadband Deals</div>
                   <div className="mega-link-list">
@@ -143,11 +181,22 @@ export default function Header() {
             </div>
 
             {/* Energy Mega Menu */}
-            <div className="nav-item">
-              <Link href="/energy" className={`nav-link ${pathname.startsWith('/energy') ? 'active' : ''}`}>
-                Energy <ChevronDown size={14} className="chevron-icon" />
+            <div 
+              className="nav-item"
+              onMouseEnter={() => handleMouseEnter('energy')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link 
+                href="/energy" 
+                className={`nav-link ${activeMenu === 'energy' ? 'active-hover' : ''} ${pathname.startsWith('/energy') ? 'active' : ''}`}
+              >
+                Energy <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'energy' ? 'rotate-180' : ''}`} />
               </Link>
-              <div className="mega-menu">
+              <div 
+                className={`mega-menu ${activeMenu === 'energy' ? 'is-open' : ''}`}
+                onMouseEnter={() => handleMouseEnter('energy')}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div>
                   <div className="mega-column-title">Compare Tariffs</div>
                   <div className="mega-link-list">
@@ -210,20 +259,31 @@ export default function Header() {
 
                 <div className="mega-promo-box" style={{ background: 'linear-gradient(135deg, #00b050 0%, #008f40 100%)' }}>
                   <div>
-                    <div className="mega-promo-title">Utrack Energy App</div>
+                    <div className="mega-promo-title">NexTrack Energy App</div>
                     <div className="mega-promo-desc">Track your hourly energy consumption and save up to £200 extra per year.</div>
                   </div>
-                  <Link href="/dashboard?tab=utrack" className="mega-promo-btn" style={{ background: '#0a192f' }}>Launch Utrack</Link>
+                  <Link href="/dashboard?tab=utrack" className="mega-promo-btn" style={{ background: '#0a192f' }}>Launch NexTrack</Link>
                 </div>
               </div>
             </div>
 
             {/* Mobile & SIM Mega Menu */}
-            <div className="nav-item">
-              <Link href="/mobile-phones" className={`nav-link ${pathname.startsWith('/mobile-phones') || pathname.startsWith('/sim-only') ? 'active' : ''}`}>
-                Mobile & SIM <ChevronDown size={14} className="chevron-icon" />
+            <div 
+              className="nav-item"
+              onMouseEnter={() => handleMouseEnter('mobile')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link 
+                href="/mobile-phones" 
+                className={`nav-link ${activeMenu === 'mobile' ? 'active-hover' : ''} ${pathname.startsWith('/mobile-phones') || pathname.startsWith('/sim-only') ? 'active' : ''}`}
+              >
+                Mobile & SIM <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'mobile' ? 'rotate-180' : ''}`} />
               </Link>
-              <div className="mega-menu">
+              <div 
+                className={`mega-menu ${activeMenu === 'mobile' ? 'is-open' : ''}`}
+                onMouseEnter={() => handleMouseEnter('mobile')}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div>
                   <div className="mega-column-title">Mobile Services</div>
                   <div className="mega-link-list">
@@ -279,13 +339,24 @@ export default function Header() {
             </div>
 
             {/* Insurance Mega Menu */}
-            <div className="nav-item">
-              <Link href="/insurance" className={`nav-link ${pathname.startsWith('/insurance') ? 'active' : ''}`}>
-                Insurance <ChevronDown size={14} className="chevron-icon" />
+            <div 
+              className="nav-item"
+              onMouseEnter={() => handleMouseEnter('insurance')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link 
+                href="/insurance" 
+                className={`nav-link ${activeMenu === 'insurance' ? 'active-hover' : ''} ${pathname.startsWith('/insurance') ? 'active' : ''}`}
+              >
+                Insurance <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'insurance' ? 'rotate-180' : ''}`} />
               </Link>
-              <div className="mega-menu" style={{ width: '640px' }}>
+              <div 
+                className={`mega-menu ${activeMenu === 'insurance' ? 'is-open' : ''}`}
+                onMouseEnter={() => handleMouseEnter('insurance')}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div>
-                  <div className="mega-column-title">Popular Insurance</div>
+                  <div className="mega-column-title">Motor & Vehicle</div>
                   <div className="mega-link-list">
                     <Link href="/insurance" className="mega-link-item">
                       <div className="mega-icon-box"><Car size={16} /></div>
@@ -295,25 +366,51 @@ export default function Header() {
                       </div>
                     </Link>
                     <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><Home size={16} /></div>
+                      <div className="mega-icon-box"><ShieldCheck size={16} /></div>
                       <div className="mega-link-text">
-                        <span className="mega-link-title">Home Insurance</span>
-                        <span className="mega-link-desc">Buildings & contents</span>
+                        <span className="mega-link-title">Van Insurance</span>
+                        <span className="mega-link-desc">Compare top UK insurers</span>
                       </div>
                     </Link>
                   </div>
                 </div>
 
                 <div>
-                  <div className="mega-column-title">More Insurance</div>
+                  <div className="mega-column-title">Home & Travel</div>
                   <div className="mega-link-list">
                     <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><HeartPulse size={16} /></div>
-                      <div className="mega-link-text"><span className="mega-link-title">Pet & Health Insurance</span></div>
+                      <div className="mega-icon-box"><Home size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Home Insurance</span>
+                        <span className="mega-link-desc">Buildings & contents</span>
+                      </div>
                     </Link>
                     <Link href="/insurance" className="mega-link-item">
                       <div className="mega-icon-box"><Plane size={16} /></div>
-                      <div className="mega-link-text"><span className="mega-link-title">Travel Cover</span></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Travel Insurance</span>
+                        <span className="mega-link-desc">Worldwide holiday cover</span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mega-column-title">Life & Health</div>
+                  <div className="mega-link-list">
+                    <Link href="/insurance" className="mega-link-item">
+                      <div className="mega-icon-box"><HeartPulse size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Pet & Health</span>
+                        <span className="mega-link-desc">Vet fees & medical cover</span>
+                      </div>
+                    </Link>
+                    <Link href="/insurance" className="mega-link-item">
+                      <div className="mega-icon-box"><Shield size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Life Insurance</span>
+                        <span className="mega-link-desc">Protect your family</span>
+                      </div>
                     </Link>
                   </div>
                 </div>
@@ -329,11 +426,22 @@ export default function Header() {
             </div>
 
             {/* Banking Mega Menu */}
-            <div className="nav-item">
-              <Link href="/banking" className={`nav-link ${pathname.startsWith('/banking') ? 'active' : ''}`}>
-                Banking <ChevronDown size={14} className="chevron-icon" />
+            <div 
+              className="nav-item"
+              onMouseEnter={() => handleMouseEnter('banking')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link 
+                href="/banking" 
+                className={`nav-link ${activeMenu === 'banking' ? 'active-hover' : ''} ${pathname.startsWith('/banking') ? 'active' : ''}`}
+              >
+                Banking <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'banking' ? 'rotate-180' : ''}`} />
               </Link>
-              <div className="mega-menu" style={{ width: '640px' }}>
+              <div 
+                className={`mega-menu ${activeMenu === 'banking' ? 'is-open' : ''}`}
+                onMouseEnter={() => handleMouseEnter('banking')}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div>
                   <div className="mega-column-title">Personal Finance</div>
                   <div className="mega-link-list">
@@ -355,10 +463,41 @@ export default function Header() {
                 </div>
 
                 <div>
-                  <div className="mega-column-title">Home Loans</div>
+                  <div className="mega-column-title">Home Mortgages</div>
                   <div className="mega-link-list">
                     <Link href="/banking" className="mega-link-item">
-                      <div className="mega-link-text"><span className="mega-link-title">Mortgages & Remortgage</span></div>
+                      <div className="mega-icon-box"><Key size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">First Time Buyer</span>
+                        <span className="mega-link-desc">Low deposit mortgage rates</span>
+                      </div>
+                    </Link>
+                    <Link href="/banking" className="mega-link-item">
+                      <div className="mega-icon-box"><Home size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Remortgage Deals</span>
+                        <span className="mega-link-desc">Fixed & tracker options</span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mega-column-title">Savings & Accounts</div>
+                  <div className="mega-link-list">
+                    <Link href="/banking" className="mega-link-item">
+                      <div className="mega-icon-box"><PiggyBank size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">High-Interest Savings</span>
+                        <span className="mega-link-desc">Cash ISAs & fixed bonds</span>
+                      </div>
+                    </Link>
+                    <Link href="/banking" className="mega-link-item">
+                      <div className="mega-icon-box"><CreditCard size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Current Accounts</span>
+                        <span className="mega-link-desc">Switching cash bonuses</span>
+                      </div>
                     </Link>
                   </div>
                 </div>

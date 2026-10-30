@@ -1,13 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Zap, Flame, Sun, ShieldCheck, Search, ArrowRight, CheckCircle2, Award, Leaf } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Zap, Flame, ShieldCheck, Search, ArrowRight, Leaf, RefreshCw } from 'lucide-react';
 
-export default function EnergyLanding() {
+export default function EnergyLandingPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex-center" style={{ minHeight: '60vh', flexDirection: 'column', gap: '16px' }}>
+        <RefreshCw size={36} className="animate-spin" style={{ color: '#00b050' }} />
+        <p style={{ fontWeight: 600, color: '#0a192f' }}>Loading Energy Comparison...</p>
+      </div>
+    }>
+      <EnergyLanding />
+    </React.Suspense>
+  );
+}
+
+function EnergyLanding() {
   const router = useRouter();
-  const [fuelType, setFuelType] = useState<'both' | 'electricity' | 'gas'>('both');
-  const [postcode, setPostcode] = useState('');
+  const searchParams = useSearchParams();
+  const initialPostcode = searchParams.get('postcode') || '';
+  const initialFuel = (searchParams.get('fuel') as any) || 'both';
+
+  const [fuelType, setFuelType] = useState<'both' | 'electricity' | 'gas'>(initialFuel);
+  const [postcode, setPostcode] = useState(initialPostcode);
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {

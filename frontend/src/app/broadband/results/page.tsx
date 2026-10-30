@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Wifi, Info, ShieldCheck, ArrowRight, Clock, Award, Star, Filter, Check } from 'lucide-react';
+import { Wifi, ArrowRight, Filter } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -35,7 +35,7 @@ function BroadbandResults() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('uswitch_token') || ''}`
+            'Authorization': `Bearer ${(localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token')) || ''}`
           },
           body: JSON.stringify({
             postcode,
@@ -57,7 +57,7 @@ function BroadbandResults() {
   }, [postcode]);
 
   const handleSwitchDeal = async (deal: any) => {
-    const token = localStorage.getItem('uswitch_token');
+    const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
 
     if (!token) {
       const tempSwitchInfo = {
@@ -69,6 +69,7 @@ function BroadbandResults() {
         costAnnual: deal.costMonthly * 12 + (deal.setupCost || 0),
         savingAnnual: 140.00
       };
+      sessionStorage.setItem('nexgen_temp_switch', JSON.stringify(tempSwitchInfo));
       sessionStorage.setItem('uswitch_temp_switch', JSON.stringify(tempSwitchInfo));
       router.push('/login?redirect=/dashboard');
       return;

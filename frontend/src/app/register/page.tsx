@@ -30,7 +30,7 @@ function Register() {
 
   // If already logged in, redirect away
   useEffect(() => {
-    const token = localStorage.getItem('uswitch_token');
+    const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
     if (token) {
       router.push(redirect);
     }
@@ -61,7 +61,10 @@ function Register() {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem('nexgen_token', data.token);
         localStorage.setItem('uswitch_token', data.token);
+        localStorage.setItem('nexgen_user', JSON.stringify(data.user));
+        localStorage.setItem('uswitch_user', JSON.stringify(data.user));
         localStorage.setItem('uswitch_user', JSON.stringify(data.user));
         
         // Push to redirect target
@@ -82,7 +85,7 @@ function Register() {
     <div className="wizard-layout">
       <div className="wizard-card" style={{ maxWidth: '460px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '1.75rem' }}>Create your Uswitch Account</h2>
+          <h2 style={{ fontSize: '1.75rem' }}>Create your NexGen Account</h2>
           <p style={{ marginTop: '6px' }}>Save your comparisons, track active switches, and track smart meter costs</p>
         </div>
 

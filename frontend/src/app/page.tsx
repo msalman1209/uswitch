@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Wifi, Zap, Smartphone, ShieldCheck, Landmark, Search, ArrowRight, 
-  CheckCircle2, Star, Shield, TrendingUp, HelpCircle, ChevronRight, Gauge
+  CheckCircle2, Star, Shield, ChevronRight
 } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
   const [postcode, setPostcode] = useState('');
+  const [energyFuel, setEnergyFuel] = useState<'both' | 'electricity' | 'gas'>('both');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const handlePostcodeSubmit = (e: React.FormEvent) => {
@@ -21,7 +22,7 @@ export default function HomePage() {
     if (activeTab === 'broadband') {
       router.push(`/broadband/results?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'energy') {
-      router.push(`/energy?postcode=${encodeURIComponent(postcode)}`);
+      router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=${energyFuel}`);
     } else if (activeTab === 'mobile') {
       router.push(`/sim-only?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'insurance') {
@@ -111,8 +112,8 @@ export default function HomePage() {
 
   const faqs = [
     {
-      q: 'Is Uswitch completely free to use?',
-      a: 'Yes, Uswitch is 100% free for customers. We earn a commission from energy suppliers, broadband providers, and financial institutions when you successfully switch through our site.'
+      q: 'Is NexGen Power Solutions completely free to use?',
+      a: 'Yes, NexGen Power Solutions is 100% free for customers. We earn a commission from energy suppliers, broadband providers, and financial institutions when you successfully switch through our site.'
     },
     {
       q: 'Will my energy or broadband connection be interrupted when I switch?',
@@ -123,8 +124,8 @@ export default function HomePage() {
       a: 'Most broadband switches take around 10 to 14 working days. Your new provider will handle transferring your line and contacting your old provider for you.'
     },
     {
-      q: 'What is the Utrack Energy Tracker?',
-      a: 'Utrack is Uswitch’s free smart meter app integration. It securely syncs with your smart meter to show your real-time electricity and gas usage, spot spikes, and recommend personalized lower tariffs.'
+      q: 'What is the NexTrack Energy Tracker?',
+      a: 'NexTrack is NexGen Power Solutions’ free smart meter app integration. It securely syncs with your smart meter to show your real-time electricity and gas usage, spot spikes, and recommend personalized lower tariffs.'
     }
   ];
 
@@ -137,13 +138,13 @@ export default function HomePage() {
             {/* Left Content */}
             <div>
               <div className="hero-badge">
-                <ShieldCheck size={16} /> Ofgem Accredited & UK's #1 Comparison Service
+                <ShieldCheck size={16} /> Ofgem Accredited & UK's Trusted Utilities Comparison Service
               </div>
               <h1 className="hero-title">
                 Switch household bills. <span>Save hundreds.</span>
               </h1>
               <p className="hero-subtitle">
-                Join over 20 million UK households who have saved money on Broadband, Energy, Mobile & Insurance with Uswitch.
+                Join thousands of UK households who have saved money on Broadband, Energy, Mobile & Insurance with NexGen Power Solutions.
               </p>
 
               <div style={{ display: 'flex', gap: '24px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -175,6 +176,48 @@ export default function HomePage() {
                   <Smartphone size={14} /> Mobile
                 </button>
               </div>
+
+              {/* Energy Fuel Options (Gas & Elec / Electricity / Gas Only) */}
+              {activeTab === 'energy' && (
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', background: '#f1f5f9', padding: '4px', borderRadius: '999px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEnergyFuel('both')}
+                    style={{
+                      flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
+                      background: energyFuel === 'both' ? '#00b050' : 'transparent',
+                      color: energyFuel === 'both' ? '#ffffff' : '#64748b',
+                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Gas & Elec
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEnergyFuel('electricity')}
+                    style={{
+                      flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
+                      background: energyFuel === 'electricity' ? '#00b050' : 'transparent',
+                      color: energyFuel === 'electricity' ? '#ffffff' : '#64748b',
+                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Electricity
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEnergyFuel('gas')}
+                    style={{
+                      flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
+                      background: energyFuel === 'gas' ? '#00b050' : 'transparent',
+                      color: energyFuel === 'gas' ? '#ffffff' : '#64748b',
+                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Gas Only
+                  </button>
+                </div>
+              )}
 
               <form onSubmit={handlePostcodeSubmit} className="postcode-form">
                 <label style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--brand-primary)' }}>

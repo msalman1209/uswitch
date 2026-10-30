@@ -9,17 +9,17 @@ export default function Footer() {
           {/* Brand & Accreditation */}
           <div className="footer-brand">
             <Link href="/" className="footer-logo">
-              U<span>switch</span>
+              Nex<span>Gen</span> <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Power Solutions</span>
             </Link>
             <p className="footer-desc">
-              Uswitch is an independent online comparison service helping millions of UK households save money on energy, broadband, mobile phones, insurance, and personal finance products.
+              NexGen Power Solutions is an independent UK energy & utilities comparison broker helping homes and businesses save money on energy tariffs, smart meters, green power, and utility services.
             </p>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '8px' }}>
               <div style={{ background: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', color: '#00b050', fontWeight: '700' }}>
                 ✓ Ofgem Confidence Code Accredited
               </div>
               <div style={{ background: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', color: '#ffffff', fontWeight: '700' }}>
-                ★ Trustpilot 4.5/5
+                ★ Trustpilot 4.8/5
               </div>
             </div>
           </div>
@@ -60,11 +60,11 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: About Uswitch */}
+          {/* Column 4: About NexGen */}
           <div>
             <div className="footer-title">Company</div>
             <ul className="footer-links">
-              <li><Link href="#">About Uswitch</Link></li>
+              <li><Link href="#">About NexGen Power Solutions</Link></li>
               <li><Link href="#">How We Make Money</Link></li>
               <li><Link href="#">Press & Media</Link></li>
               <li><Link href="#">Careers</Link></li>
@@ -76,7 +76,7 @@ export default function Footer() {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div>
-            © {new Date().getFullYear()} Uswitch Limited. All rights reserved. Registered in England & Wales (No. 03612689). Authorized and regulated by the Financial Conduct Authority (FCA).
+            © {new Date().getFullYear()} NexGen Power Solutions Ltd. All rights reserved. Registered in England & Wales. Authorized and regulated by the Financial Conduct Authority (FCA). Partnered with Jellyfish Energy.
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <Link href="#">Privacy Policy</Link>
