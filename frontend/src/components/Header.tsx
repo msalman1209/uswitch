@@ -304,39 +304,6 @@ export default function Header() {
                   </div>
                 </div>
 
-                <div>
-                  <div className="mega-column-title">Popular Brands</div>
-                  <div className="mega-link-list">
-                    <Link href="/mobile-phones" className="mega-link-item">
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Apple iPhone 16 / 15</span>
-                      </div>
-                    </Link>
-                    <Link href="/mobile-phones" className="mega-link-item">
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Samsung Galaxy S24</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mega-column-title">Networks</div>
-                  <div className="mega-link-list">
-                    <Link href="/sim-only" className="mega-link-item"><span className="mega-link-title">O2, EE & Vodafone</span></Link>
-                    <Link href="/sim-only" className="mega-link-item"><span className="mega-link-title">Three & Sky Mobile</span></Link>
-                  </div>
-                </div>
-
-                <div className="mega-promo-box">
-                  <div>
-                    <div className="mega-promo-title">5G SIM Deals</div>
-                    <div className="mega-promo-desc">Get ultra-fast 5G speeds with 100GB data for just £8/month.</div>
-                  </div>
-                  <Link href="/sim-only" className="mega-promo-btn">Compare SIMs</Link>
-                </div>
-              </div>
-            </div>
 
             {/* Insurance Mega Menu */}
             <div 

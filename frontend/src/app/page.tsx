@@ -10,7 +10,7 @@ import {
 
 export default function HomePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
+  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'insurance' | 'banking'>('broadband');
   const [postcode, setPostcode] = useState('');
   const [energyFuel, setEnergyFuel] = useState<'both' | 'electricity' | 'gas'>('both');
   const [customerType, setCustomerType] = useState<'residential' | 'business'>('residential');
@@ -53,15 +53,6 @@ export default function HomePage() {
       color: '#eab308'
     },
     {
-      id: 'mobile',
-      title: 'Mobile & SIM Only',
-      desc: 'Find the cheapest SIM only deals & latest smartphone contracts.',
-      icon: <Smartphone size={28} />,
-      badge: 'Unlimited 5G Data',
-      href: '/sim-only',
-      color: '#3b82f6'
-    },
-    {
       id: 'insurance',
       title: 'Car & Home Insurance',
       desc: 'Compare quotes from over 100 top UK insurers in one quick search.',
@@ -99,15 +90,6 @@ export default function HomePage() {
       contract: '18 Months',
       price: '39.00',
       tag: 'Popular Bundle'
-    },
-    {
-      category: 'Mobile',
-      provider: 'voxi',
-      title: 'Unlimited 5G Data SIM',
-      speed: '5G Speed',
-      contract: '1 Month Flex',
-      price: '12.00',
-      tag: 'No Contract'
     }
   ];
 
@@ -169,12 +151,6 @@ export default function HomePage() {
                   onClick={() => setActiveTab('energy')}
                 >
                   <Zap size={14} /> Energy
-                </button>
-                <button 
-                  className={`calc-tab-btn ${activeTab === 'mobile' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('mobile')}
-                >
-                  <Smartphone size={14} /> Mobile
                 </button>
               </div>
 
@@ -373,13 +349,10 @@ export default function HomePage() {
             COMPARE LEADING UK PROVIDERS IN ONE PLACE
           </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '40px', opacity: 0.8 }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#e20074' }}>T-MOBILE</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#001080' }}>VIRGIN MEDIA</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0072c6' }}>SKY</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#5514b4' }}>BT FIBRE</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>OCTOPUS ENERGY</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000' }}>VODAFONE</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#2563eb' }}>O2</span>
           </div>
         </div>
       </section>

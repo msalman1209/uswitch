@@ -36,14 +36,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 2: Broadband & Mobile */}
+          {/* Column 2: Broadband */}
           <div>
-            <div className="footer-title">Broadband & Mobile</div>
+            <div className="footer-title">Broadband</div>
             <ul className="footer-links">
               <li><Link href="/broadband">Fibre Broadband Deals</Link></li>
               <li><Link href="/broadband">Broadband & TV Bundles</Link></li>
-              <li><Link href="/sim-only">SIM Only Contracts</Link></li>
-              <li><Link href="/mobile-phones">iPhone 16 Deals</Link></li>
               <li><Link href="/broadband">Broadband Speed Test</Link></li>
             </ul>
           </div>
