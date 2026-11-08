@@ -10,7 +10,7 @@ import {
 
 export default function HomePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'insurance' | 'banking'>('broadband');
+  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
   const [postcode, setPostcode] = useState('');
   const [energyFuel, setEnergyFuel] = useState<'both' | 'electricity' | 'gas'>('both');
   const [customerType, setCustomerType] = useState<'residential' | 'business'>('residential');
