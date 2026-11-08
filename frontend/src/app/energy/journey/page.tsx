@@ -20,6 +20,14 @@ const TOP_SUPPLIERS = [
   { name: 'Scottish Power', color: '#008b8b', tag: 'Wind Energy' }
 ];
 
+const TOP_BUSINESS_SUPPLIERS = [
+  { name: 'British Gas Business', color: '#00539b', tag: 'UK #1 Commercial' },
+  { name: 'Octopus Energy for Business', color: '#ff0080', tag: '100% Green Certified' },
+  { name: 'TotalEnergies Gas & Power', color: '#ed1b24', tag: 'SME & Multi-Site' },
+  { name: 'E.ON Next Business', color: '#e2001a', tag: 'Renewable B2B' },
+  { name: 'EDF Energy Business', color: '#ea5a00', tag: 'Fixed Price Lock' },
+  { name: 'ScottishPower Business', color: '#008b8b', tag: 'Commercial Rates' }
+];
 
 export default function EnergyJourneyPage() {
   return (
@@ -39,7 +47,9 @@ function EnergyJourney() {
   const router = useRouter();
   const postcodeParam = searchParams.get('postcode') || 'SW1A 1AA';
   const initialFuel = (searchParams.get('fuel') as any) || 'both';
+  const initialType = (searchParams.get('type') as any) === 'business' ? 'business' : 'residential';
 
+  const [customerType, setCustomerType] = useState<'residential' | 'business'>(initialType);
   const [postcode, setPostcode] = useState(postcodeParam);
   const [isEditingPostcode, setIsEditingPostcode] = useState(false);
   const [newPostcode, setNewPostcode] = useState(postcodeParam);
@@ -50,6 +60,8 @@ function EnergyJourney() {
   
   // Address State
   const [addressList, setAddressList] = useState<string[]>([]);
+  const [residentialAddresses, setResidentialAddresses] = useState<string[]>([]);
+  const [businessAddresses, setBusinessAddresses] = useState<string[]>([]);
   const [locationInfo, setLocationInfo] = useState<{ district?: string; region?: string; ward?: string } | null>(null);
   const [addressLoading, setAddressLoading] = useState<boolean>(true);
   const [selectedAddress, setSelectedAddress] = useState<string>('');
@@ -58,15 +70,26 @@ function EnergyJourney() {
   const [manualFlat, setManualFlat] = useState<string>('');
   const [manualStreet, setManualStreet] = useState<string>('');
 
+  // Business Details State
+  const [businessName, setBusinessName] = useState(initialType === 'business' ? 'NexGen Enterprises Ltd' : '');
+  const [businessType, setBusinessType] = useState<'limited' | 'sole_trader' | 'partnership' | 'charity'>('limited');
+  const [companyNumber, setCompanyNumber] = useState('');
+  const [isVatRegistered, setIsVatRegistered] = useState(true);
+  const [vatNumber, setVatNumber] = useState('');
+  const [businessSector, setBusinessSector] = useState('Retail & Shops');
+  const [signatoryName, setSignatoryName] = useState('Malik Salman');
+  const [signatoryRole, setSignatoryRole] = useState('Managing Director');
+  const [contractRenewal, setContractRenewal] = useState('1to3months');
+
   const [fuelType, setFuelType] = useState<'both' | 'electricity' | 'gas'>(initialFuel);
   const [sameSupplier, setSameSupplier] = useState(true);
-  const [elecSupplier, setElecSupplier] = useState('Octopus Energy');
-  const [gasSupplier, setGasSupplier] = useState('British Gas');
+  const [elecSupplier, setElecSupplier] = useState(initialType === 'business' ? 'British Gas Business' : 'Octopus Energy');
+  const [gasSupplier, setGasSupplier] = useState(initialType === 'business' ? 'British Gas Business' : 'British Gas');
   const [paymentMethod, setPaymentMethod] = useState<'monthly-direct-debit' | 'quarterly-bill' | 'prepayment'>('monthly-direct-debit');
   const [usageType, setUsageType] = useState<'estimate' | 'exact'>('estimate');
   const [propertySize, setPropertySize] = useState<'small' | 'medium' | 'large'>('medium');
-  const [annualElecKwh, setAnnualElecKwh] = useState('2900');
-  const [annualGasKwh, setAnnualGasKwh] = useState('11500');
+  const [annualElecKwh, setAnnualElecKwh] = useState(initialType === 'business' ? '30000' : '2900');
+  const [annualGasKwh, setAnnualGasKwh] = useState(initialType === 'business' ? '75000' : '11500');
   
   // Results Filters & Sorting
   const [filterGreenOnly, setFilterGreenOnly] = useState(false);
@@ -80,6 +103,33 @@ function EnergyJourney() {
   const [switchSubmitting, setSwitchSubmitting] = useState(false);
   const [switchSuccess, setSwitchSuccess] = useState<any | null>(null);
 
+  // Switch between Residential Home and Business Premises
+  const handleToggleCustomerType = (type: 'residential' | 'business') => {
+    setCustomerType(type);
+    if (type === 'business') {
+      const list = businessAddresses.length > 0 ? businessAddresses : addressList;
+      setAddressList(list);
+      if (list.length > 0) setSelectedAddress(list[0]);
+      if (!businessName) setBusinessName('NexGen Enterprises Ltd');
+      setElecSupplier('British Gas Business');
+      setGasSupplier('British Gas Business');
+      if (usageType === 'estimate') {
+        setAnnualElecKwh('30000');
+        setAnnualGasKwh('75000');
+      }
+    } else {
+      const list = residentialAddresses.length > 0 ? residentialAddresses : addressList;
+      setAddressList(list);
+      if (list.length > 0) setSelectedAddress(list[0]);
+      setElecSupplier('Octopus Energy');
+      setGasSupplier('British Gas');
+      if (usageType === 'estimate') {
+        setAnnualElecKwh('2900');
+        setAnnualGasKwh('11500');
+      }
+    }
+  };
+
   // Fetch real UK location & dynamic addresses for the postcode
   useEffect(() => {
     let isCurrent = true;
@@ -90,10 +140,16 @@ function EnergyJourney() {
         const res = await fetch(`${API_BASE}/postcode/lookup/${encodeURIComponent(clean)}`);
         if (res.ok) {
           const data = await res.json();
-          if (isCurrent && data.success && Array.isArray(data.addresses) && data.addresses.length > 0) {
-            setAddressList(data.addresses);
+          if (isCurrent && data.success) {
+            const resi = Array.isArray(data.addresses) && data.addresses.length > 0 ? data.addresses : [];
+            const biz = Array.isArray(data.businessAddresses) && data.businessAddresses.length > 0 ? data.businessAddresses : [];
+            setResidentialAddresses(resi);
+            setBusinessAddresses(biz);
             setLocationInfo({ district: data.district, region: data.region, ward: data.ward });
-            setSelectedAddress(data.addresses[0]);
+
+            const activeList = customerType === 'business' && biz.length > 0 ? biz : resi;
+            setAddressList(activeList);
+            setSelectedAddress(activeList[0] || '');
             setManualStreet(data.street || `${data.district || 'High'} Street`);
             setAddressLoading(false);
             return;
@@ -105,7 +161,7 @@ function EnergyJourney() {
 
       // Graceful fallback if backend call fails
       if (isCurrent) {
-        const fallbackAddresses = [
+        const fallbackResi = [
           `Flat 1, 10 High Street, ${postcode}`,
           `Flat 2, 10 High Street, ${postcode}`,
           `Flat 3, 10 High Street, ${postcode}`,
@@ -114,15 +170,24 @@ function EnergyJourney() {
           `12 High Street, ${postcode}`,
           `24 High Street, ${postcode}`
         ];
-        setAddressList(fallbackAddresses);
-        setSelectedAddress(fallbackAddresses[0]);
+        const fallbackBiz = [
+          `Unit 1A, High Street Enterprise Park, ${postcode}`,
+          `Suite 101, Commercial Chambers, 14 High Street, ${postcode}`,
+          `Ground Floor Retail, 24 High Street, ${postcode}`,
+          `Office 3, Business Hub, High Street, ${postcode}`
+        ];
+        setResidentialAddresses(fallbackResi);
+        setBusinessAddresses(fallbackBiz);
+        const active = customerType === 'business' ? fallbackBiz : fallbackResi;
+        setAddressList(active);
+        setSelectedAddress(active[0]);
         setAddressLoading(false);
       }
     };
 
     fetchAddresses();
     return () => { isCurrent = false; };
-  }, [postcode]);
+  }, [postcode, customerType]);
 
   // Handle applying manual address
   const handleApplyManualAddress = (e: React.FormEvent) => {
@@ -157,6 +222,16 @@ function EnergyJourney() {
       const payload = {
         postcode,
         address: selectedAddress,
+        customerType,
+        isBusiness: customerType === 'business',
+        businessName: customerType === 'business' ? (businessName.trim() || 'My Business Ltd') : undefined,
+        businessType: customerType === 'business' ? businessType : undefined,
+        companyNumber: customerType === 'business' ? companyNumber : undefined,
+        vatNumber: customerType === 'business' && isVatRegistered ? vatNumber : undefined,
+        sector: customerType === 'business' ? businessSector : undefined,
+        signatoryName: customerType === 'business' ? signatoryName : undefined,
+        signatoryRole: customerType === 'business' ? signatoryRole : undefined,
+        contractEndDate: customerType === 'business' ? contractRenewal : undefined,
         currentSupplier: fuelType === 'gas' ? gasSupplier : elecSupplier,
         paymentMethod,
         usageType,
@@ -229,7 +304,14 @@ function EnergyJourney() {
           savingAnnual: switchModalDeal.savingAnnual,
           client: {
             address: selectedAddress,
-            postcode
+            postcode,
+            isBusiness: customerType === 'business',
+            businessName: customerType === 'business' ? businessName : undefined,
+            businessType: customerType === 'business' ? businessType : undefined,
+            companyNumber: customerType === 'business' ? companyNumber : undefined,
+            vatNumber: customerType === 'business' && isVatRegistered ? vatNumber : undefined,
+            signatoryName: customerType === 'business' ? signatoryName : undefined,
+            signatoryRole: customerType === 'business' ? signatoryRole : undefined
           }
         })
       });
@@ -414,7 +496,7 @@ function EnergyJourney() {
 
               <div className="wizard-header">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
-                  <h2>Confirm your property address</h2>
+                  <h2>Confirm your {customerType === 'business' ? 'commercial business' : 'property'} address</h2>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     {locationInfo?.district && (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e6f7ec', color: '#008a00', fontSize: '0.8rem', fontWeight: 700, padding: '5px 12px', borderRadius: '999px', border: '1px solid #bbf7d0' }}>
@@ -453,6 +535,157 @@ function EnergyJourney() {
                     Update Postcode
                   </button>
                 </form>
+              )}
+
+                            {/* Property Type Switcher Pills */}
+              <div className="property-type-selector">
+                <button
+                  type="button"
+                  className={`property-type-pill ${customerType === 'residential' ? 'active' : ''}`}
+                  onClick={() => handleToggleCustomerType('residential')}
+                >
+                  <Home size={18} />
+                  <span>Residential Home</span>
+                </button>
+                <button
+                  type="button"
+                  className={`property-type-pill ${customerType === 'business' ? 'active' : ''}`}
+                  onClick={() => handleToggleCustomerType('business')}
+                >
+                  <Building size={18} />
+                  <span>Business Premises</span>
+                </button>
+              </div>
+
+              {/* Commercial Business Details Form */}
+              {customerType === 'business' && (
+                <div className="business-details-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Building size={20} style={{ color: '#00b050' }} />
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--brand-primary)' }}>
+                        Commercial Business Information
+                      </h3>
+                    </div>
+                    <span className="business-badge">B2B Commercial Energy</span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Trading / Business Name *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="e.g. Acme Tech Solutions Ltd"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Business Structure</label>
+                      <select 
+                        className="form-control" 
+                        value={businessType}
+                        onChange={(e) => setBusinessType(e.target.value as any)}
+                      >
+                        <option value="limited">Limited Company (Ltd / PLC)</option>
+                        <option value="sole_trader">Sole Trader / Self-Employed</option>
+                        <option value="partnership">Partnership / LLP</option>
+                        <option value="charity">Registered Charity / Non-Profit</option>
+                      </select>
+                    </div>
+
+                    {businessType === 'limited' && (
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Company Reg Number (CRN)</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          placeholder="e.g. 12345678"
+                          value={companyNumber}
+                          onChange={(e) => setCompanyNumber(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Business Sector / Industry</label>
+                      <select 
+                        className="form-control" 
+                        value={businessSector}
+                        onChange={(e) => setBusinessSector(e.target.value)}
+                      >
+                        <option value="Retail & Shops">Retail & High Street Shops</option>
+                        <option value="Offices & Tech">Offices & Professional Services</option>
+                        <option value="Hospitality & Pubs">Hospitality, Restaurants & Pubs</option>
+                        <option value="Industrial & Warehousing">Manufacturing & Warehouses</option>
+                        <option value="Healthcare & Care Homes">Healthcare & Medical</option>
+                        <option value="Education & Schools">Education & Community</option>
+                        <option value="Other">Other Commercial Premises</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Contract Renewal Window</label>
+                      <select 
+                        className="form-control" 
+                        value={contractRenewal}
+                        onChange={(e) => setContractRenewal(e.target.value)}
+                      >
+                        <option value="now">Out of contract (Deemed rollover rate)</option>
+                        <option value="1to3months">Within next 1 - 3 months</option>
+                        <option value="3to6months">Within 3 - 6 months</option>
+                        <option value="moving">Moving to new business premises</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Authorized Decision Maker</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Full name (e.g. Malik Salman)"
+                        value={signatoryName}
+                        onChange={(e) => setSignatoryName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Signatory Role</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="e.g. Managing Director / Partner"
+                        value={signatoryRole}
+                        onChange={(e) => setSignatoryRole(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', paddingTop: '10px', borderTop: '1px solid #e2e8f0' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={isVatRegistered} 
+                        onChange={(e) => setIsVatRegistered(e.target.checked)}
+                        style={{ width: '16px', height: '16px', accentColor: '#00b050' }}
+                      />
+                      <span>Business is VAT Registered (20% standard rate applies)</span>
+                    </label>
+                    {isVatRegistered && (
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="UK VAT Number (e.g. GB123456789)"
+                        value={vatNumber}
+                        onChange={(e) => setVatNumber(e.target.value)}
+                        style={{ maxWidth: '240px', padding: '6px 12px', fontSize: '0.85rem' }}
+                      />
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* Toggle Between List / Manual Address */}
@@ -682,7 +915,7 @@ function EnergyJourney() {
                   {fuelType === 'gas' ? 'Select Gas Supplier' : sameSupplier ? 'Select Current Supplier' : 'Select Electricity Supplier'}
                 </label>
                 <div className="supplier-grid">
-                  {TOP_SUPPLIERS.map((s, idx) => {
+                  {(customerType === 'business' ? TOP_BUSINESS_SUPPLIERS : TOP_SUPPLIERS).map((s, idx) => {
                     const current = fuelType === 'gas' ? gasSupplier : elecSupplier;
                     const isSelected = current === s.name;
                     return (
@@ -711,7 +944,7 @@ function EnergyJourney() {
                 <div className="form-group" style={{ marginTop: '24px' }}>
                   <label className="form-label">Select Gas Supplier</label>
                   <div className="supplier-grid">
-                    {TOP_SUPPLIERS.map((s, idx) => {
+                    {(customerType === 'business' ? TOP_BUSINESS_SUPPLIERS : TOP_SUPPLIERS).map((s, idx) => {
                       const isSelected = gasSupplier === s.name;
                       return (
                         <div 
@@ -862,51 +1095,124 @@ function EnergyJourney() {
                 </button>
               </div>
 
-              {/* Home Size Cards */}
+              {/* Premises Consumption Cards */}
               {usageType === 'estimate' ? (
                 <div className="wizard-options-grid">
-                  <div 
-                    className={`wizard-option-box ${propertySize === 'small' ? 'selected' : ''}`}
-                    onClick={() => setPropertySize('small')}
-                  >
-                    <div className="icon-wrap">
-                      <Home size={28} />
-                    </div>
-                    <span className="wizard-option-title">1 - 2 Bedrooms</span>
-                    <span className="wizard-option-subtitle">
-                      Flat or small terraced house. 1-2 occupants.<br />
-                      ~1,800 kWh Elec • 6,000 kWh Gas
-                    </span>
-                  </div>
+                  {customerType === 'business' ? (
+                    <>
+                      <div 
+                        className={`wizard-option-box ${propertySize === 'small' ? 'selected' : ''}`}
+                        onClick={() => {
+                          setPropertySize('small');
+                          setAnnualElecKwh('10000');
+                          setAnnualGasKwh('25000');
+                        }}
+                      >
+                        <div className="icon-wrap">
+                          <Building size={28} />
+                        </div>
+                        <span className="wizard-option-title">Micro-business / Small Unit</span>
+                        <span className="wizard-option-subtitle">
+                          Local shop, independent cafe, small private office.<br />
+                          ~10,000 kWh Elec • 25,000 kWh Gas
+                        </span>
+                      </div>
 
-                  <div 
-                    className={`wizard-option-box ${propertySize === 'medium' ? 'selected' : ''}`}
-                    onClick={() => setPropertySize('medium')}
-                  >
-                    <span className="wizard-option-badge">UK Average</span>
-                    <div className="icon-wrap">
-                      <Home size={32} />
-                    </div>
-                    <span className="wizard-option-title">3 Bedrooms</span>
-                    <span className="wizard-option-subtitle">
-                      Semi-detached or terraced. 3-4 occupants.<br />
-                      ~2,900 kWh Elec • 11,500 kWh Gas
-                    </span>
-                  </div>
+                      <div 
+                        className={`wizard-option-box ${propertySize === 'medium' ? 'selected' : ''}`}
+                        onClick={() => {
+                          setPropertySize('medium');
+                          setAnnualElecKwh('30000');
+                          setAnnualGasKwh('75000');
+                        }}
+                      >
+                        <span className="wizard-option-badge">Most Common SME</span>
+                        <div className="icon-wrap">
+                          <Building size={32} />
+                        </div>
+                        <span className="wizard-option-title">Medium SME Premises</span>
+                        <span className="wizard-option-subtitle">
+                          Restaurant, multi-room commercial office, clinic.<br />
+                          ~30,000 kWh Elec • 75,000 kWh Gas
+                        </span>
+                      </div>
 
-                  <div 
-                    className={`wizard-option-box ${propertySize === 'large' ? 'selected' : ''}`}
-                    onClick={() => setPropertySize('large')}
-                  >
-                    <div className="icon-wrap">
-                      <Home size={36} />
-                    </div>
-                    <span className="wizard-option-title">4+ Bedrooms</span>
-                    <span className="wizard-option-subtitle">
-                      Large detached home. 5+ occupants.<br />
-                      ~4,300 kWh Elec • 17,000 kWh Gas
-                    </span>
-                  </div>
+                      <div 
+                        className={`wizard-option-box ${propertySize === 'large' ? 'selected' : ''}`}
+                        onClick={() => {
+                          setPropertySize('large');
+                          setAnnualElecKwh('85000');
+                          setAnnualGasKwh('200000');
+                        }}
+                      >
+                        <div className="icon-wrap">
+                          <Building size={36} />
+                        </div>
+                        <span className="wizard-option-title">Large Commercial / Industrial</span>
+                        <span className="wizard-option-subtitle">
+                          Warehouse, factory, hotel, supermarket, multi-site.<br />
+                          ~85,000 kWh Elec • 200,000 kWh Gas
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className={`wizard-option-box ${propertySize === 'small' ? 'selected' : ''}`}
+                        onClick={() => {
+                          setPropertySize('small');
+                          setAnnualElecKwh('1800');
+                          setAnnualGasKwh('6000');
+                        }}
+                      >
+                        <div className="icon-wrap">
+                          <Home size={28} />
+                        </div>
+                        <span className="wizard-option-title">1 - 2 Bedrooms</span>
+                        <span className="wizard-option-subtitle">
+                          Flat or small terraced house. 1-2 occupants.<br />
+                          ~1,800 kWh Elec • 6,000 kWh Gas
+                        </span>
+                      </div>
+
+                      <div 
+                        className={`wizard-option-box ${propertySize === 'medium' ? 'selected' : ''}`}
+                        onClick={() => {
+                          setPropertySize('medium');
+                          setAnnualElecKwh('2900');
+                          setAnnualGasKwh('11500');
+                        }}
+                      >
+                        <span className="wizard-option-badge">UK Average</span>
+                        <div className="icon-wrap">
+                          <Home size={32} />
+                        </div>
+                        <span className="wizard-option-title">3 Bedrooms</span>
+                        <span className="wizard-option-subtitle">
+                          Semi-detached or terraced. 3-4 occupants.<br />
+                          ~2,900 kWh Elec • 11,500 kWh Gas
+                        </span>
+                      </div>
+
+                      <div 
+                        className={`wizard-option-box ${propertySize === 'large' ? 'selected' : ''}`}
+                        onClick={() => {
+                          setPropertySize('large');
+                          setAnnualElecKwh('4300');
+                          setAnnualGasKwh('17000');
+                        }}
+                      >
+                        <div className="icon-wrap">
+                          <Home size={36} />
+                        </div>
+                        <span className="wizard-option-title">4+ Bedrooms</span>
+                        <span className="wizard-option-subtitle">
+                          Large detached home. 5+ occupants.<br />
+                          ~4,300 kWh Elec • 17,000 kWh Gas
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
@@ -991,16 +1297,18 @@ function EnergyJourney() {
                   </span>
                 </div>
                 <h1 style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--brand-primary)', letterSpacing: '-0.02em', marginBottom: '6px' }}>
-                  Top Energy Deals For Your Home
+                  {customerType === 'business' ? `Top Commercial Energy Deals for ${businessName || 'Your Business'}` : 'Top Energy Deals For Your Home'}
                 </h1>
                 <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
-                  Showing {comparisonResults.results.deals.length} tariffs compared against the standard Ofgem energy price cap.
+                  {customerType === 'business'
+                    ? `Showing ${comparisonResults.results.deals.length} fixed commercial tariffs compared against out-of-contract deemed rollover rates.`
+                    : `Showing ${comparisonResults.results.deals.length} tariffs compared against the standard Ofgem energy price cap.`}
                 </p>
               </div>
 
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 20px', borderRadius: '16px', textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Current Baseline Cost</span>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', fontWeight: 600 }}>{customerType === 'business' ? 'Deemed Rollover Baseline' : 'Current Baseline Cost'}</span>
                   <span style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
                     £{comparisonResults.results.currentPlan?.costMonthly || '124.80'}/mo
                   </span>
@@ -1091,9 +1399,11 @@ function EnergyJourney() {
 
                     return (
                       <div key={index} className="deal-card">
-                        {index === 0 && (
+                        {index === 0 ? (
                           <span className="deal-badge cheapest">★ Top Pick • Maximum Savings</span>
-                        )}
+                        ) : customerType === 'business' ? (
+                          <span className="deal-badge" style={{ background: '#1e3a8a', color: '#ffffff' }}>🏢 B2B Commercial Fixed</span>
+                        ) : null}
 
                         {/* Supplier & Plan Col */}
                         <div>
@@ -1112,6 +1422,11 @@ function EnergyJourney() {
                             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '999px' }}>
                               {deal.contractLength || 12}M Fixed
                             </span>
+                            {customerType === 'business' && (
+                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', padding: '3px 8px', borderRadius: '999px' }}>
+                                CCL Exemption Eligible
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -1242,16 +1557,65 @@ function EnergyJourney() {
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div className="form-group">
-                      <label className="form-label">First Name</label>
-                      <input type="text" className="form-control" defaultValue="Salman" required />
+                  {customerType === 'business' ? (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
+                        <div className="form-group">
+                          <label className="form-label">Trading / Business Name *</label>
+                          <input 
+                            type="text" 
+                            className="form-control" 
+                            value={businessName} 
+                            onChange={(e) => setBusinessName(e.target.value)} 
+                            required 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Company Number (CRN)</label>
+                          <input 
+                            type="text" 
+                            className="form-control" 
+                            value={companyNumber} 
+                            onChange={(e) => setCompanyNumber(e.target.value)} 
+                            placeholder="e.g. 12345678" 
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                        <div className="form-group">
+                          <label className="form-label">Authorized Signatory Name *</label>
+                          <input 
+                            type="text" 
+                            className="form-control" 
+                            value={signatoryName} 
+                            onChange={(e) => setSignatoryName(e.target.value)} 
+                            required 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Signatory Role / Position *</label>
+                          <input 
+                            type="text" 
+                            className="form-control" 
+                            value={signatoryRole} 
+                            onChange={(e) => setSignatoryRole(e.target.value)} 
+                            required 
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                      <div className="form-group">
+                        <label className="form-label">First Name</label>
+                        <input type="text" className="form-control" defaultValue="Salman" required />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Last Name</label>
+                        <input type="text" className="form-control" defaultValue="Khan" required />
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">Last Name</label>
-                      <input type="text" className="form-control" defaultValue="Khan" required />
-                    </div>
-                  </div>
+                  )}
 
                   <div className="form-group">
                     <label className="form-label">Email Address for Switch Updates</label>

@@ -1530,6 +1530,56 @@ select.form-control {
    USER DASHBOARD & UTILITY TRACKER STYLES
    ========================================================================== */
 
+/* Universal Card & Alert Components */
+.card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(10, 25, 47, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 28px rgba(10, 25, 47, 0.08);
+}
+
+.alert-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: 14px;
+  margin-bottom: 28px;
+  font-size: 0.925rem;
+  line-height: 1.5;
+}
+
+.alert-box.info {
+  background: #f0f7ff;
+  border: 1.5px solid #bae0ff;
+  color: #034f9c;
+}
+
+.alert-box.success {
+  background: #f6ffed;
+  border: 1.5px solid #b7eb8f;
+  color: #1b6305;
+}
+
+.alert-box.warning {
+  background: #fffbe6;
+  border: 1.5px solid #ffe58f;
+  color: #b37300;
+}
+
+.alert-box.error {
+  background: #fff2f0;
+  border: 1.5px solid #ffccc7;
+  color: #b0101c;
+}
+
 .dashboard-layout {
   padding: 40px 0 80px;
   max-width: 1240px;
@@ -1808,4 +1858,66 @@ select.form-control {
   font-size: 1.15rem;
   font-weight: 700;
   color: #0a192f;
+}
+
+
+/* ==========================================================================
+   BUSINESS / COMMERCIAL PROPERTY STYLES
+   ========================================================================== */
+
+.property-type-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.property-type-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.property-type-pill:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.property-type-pill.active {
+  border-color: #00b050;
+  background: #e6f7ec;
+  color: #00873d;
+  box-shadow: 0 4px 14px rgba(0, 176, 80, 0.15);
+}
+
+.business-details-card {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(10, 25, 47, 0.03);
+}
+
+.business-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
 }

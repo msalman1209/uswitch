@@ -319,6 +319,99 @@ const MOCK_ENERGY_DEALS = [
         rating: 4.1
     }
 ];
+const MOCK_BUSINESS_ENERGY_DEALS = [
+    {
+        supplierName: 'British Gas Business',
+        planName: 'Business Fixed 12M Protect',
+        elecUnitRate: 0.224,
+        elecStandingCharge: 0.65,
+        gasUnitRate: 0.054,
+        gasStandingCharge: 0.40,
+        contractLength: 12,
+        exitFee: 0,
+        isGreen: false,
+        rating: 4.6,
+        features: ['Fixed rate price lock', 'Dedicated business account manager', 'Free smart meter installation']
+    },
+    {
+        supplierName: 'Octopus Energy for Business',
+        planName: 'Business 24M Green Fixed',
+        elecUnitRate: 0.218,
+        elecStandingCharge: 0.58,
+        gasUnitRate: 0.052,
+        gasStandingCharge: 0.38,
+        contractLength: 24,
+        exitFee: 0,
+        isGreen: true,
+        rating: 4.9,
+        features: ['100% Renewable electricity (REGO)', 'No exit fees for small business', 'Carbon neutral gas option']
+    },
+    {
+        supplierName: 'TotalEnergies Gas & Power',
+        planName: 'Pure Commercial 12M Saver',
+        elecUnitRate: 0.215,
+        elecStandingCharge: 0.60,
+        gasUnitRate: 0.049,
+        gasStandingCharge: 0.35,
+        contractLength: 12,
+        exitFee: 0,
+        isGreen: true,
+        rating: 4.7,
+        features: ['Lowest unit rates for SMEs', 'Automated bill management', 'Climate Change Levy (CCL) compliant']
+    },
+    {
+        supplierName: 'EDF Energy Business',
+        planName: 'Commercial Freedom Fixed 36M',
+        elecUnitRate: 0.210,
+        elecStandingCharge: 0.62,
+        gasUnitRate: 0.050,
+        gasStandingCharge: 0.36,
+        contractLength: 36,
+        exitFee: 0,
+        isGreen: false,
+        rating: 4.5,
+        features: ['3-Year inflation protection', 'Zero peak-demand penalty', 'Ideal for long-term lease premises']
+    },
+    {
+        supplierName: 'E.ON Next Business',
+        planName: 'Next Business 1 Year Fixed',
+        elecUnitRate: 0.221,
+        elecStandingCharge: 0.60,
+        gasUnitRate: 0.053,
+        gasStandingCharge: 0.39,
+        contractLength: 12,
+        exitFee: 0,
+        isGreen: true,
+        rating: 4.6,
+        features: ['100% Renewable backed by UK wind', 'Online customer dashboard', 'Direct Debit automated discount']
+    },
+    {
+        supplierName: 'SmartestEnergy Business',
+        planName: 'Commercial Eco Smart Fixed',
+        elecUnitRate: 0.219,
+        elecStandingCharge: 0.55,
+        gasUnitRate: 0.051,
+        gasStandingCharge: 0.37,
+        contractLength: 12,
+        exitFee: 0,
+        isGreen: true,
+        rating: 4.7,
+        features: ['Certified British renewable sources', 'Eco certificate for marketing', 'Transparent pass-through billing']
+    },
+    {
+        supplierName: 'Corona Energy',
+        planName: 'SME Commercial Rate Guard 24M',
+        elecUnitRate: 0.220,
+        elecStandingCharge: 0.59,
+        gasUnitRate: 0.052,
+        gasStandingCharge: 0.39,
+        contractLength: 24,
+        exitFee: 0,
+        isGreen: false,
+        rating: 4.4,
+        features: ['Fixed unit rates for 2 full years', 'Tailored for hospitality and retail', 'Simple single bill for multi-site']
+    }
+];
 const MOCK_BROADBAND_DEALS = [
     {
         providerName: 'Virgin Media',
@@ -471,13 +564,14 @@ const MOCK_MOBILE_DEALS = [
     }
 ];
 async function runEnergyComparison(req, res) {
-    const { postcode, currentSupplier, currentPlanName, paymentMethod, usageType, propertySize, annualElecKwh, annualGasKwh, fuelType = 'both' } = req.body;
+    const { postcode, currentSupplier, currentPlanName, paymentMethod, usageType, propertySize, annualElecKwh, annualGasKwh, fuelType = 'both', customerType = 'residential', isBusiness = false, businessName, businessType, companyNumber, vatNumber, sector, contractEndDate } = req.body;
     try {
         if (!postcode) {
             return res.status(400).json({ error: 'Postcode is required' });
         }
-        let elecUsage = 2900;
-        let gasUsage = 11500;
+        const isCommercial = isBusiness === true || customerType === 'business';
+        let elecUsage = isCommercial ? 30000 : 2900;
+        let gasUsage = isCommercial ? 75000 : 11500;
         if (usageType === 'exact') {
             if (annualElecKwh)
                 elecUsage = parseFloat(annualElecKwh);
@@ -485,19 +579,31 @@ async function runEnergyComparison(req, res) {
                 gasUsage = parseFloat(annualGasKwh);
         }
         else {
-            if (propertySize === 'small') {
-                elecUsage = 1800;
-                gasUsage = 6000;
+            if (isCommercial) {
+                if (propertySize === 'small' || propertySize === 'micro') {
+                    elecUsage = 10000;
+                    gasUsage = 25000;
+                }
+                else if (propertySize === 'large') {
+                    elecUsage = 85000;
+                    gasUsage = 200000;
+                }
             }
-            else if (propertySize === 'large') {
-                elecUsage = 4300;
-                gasUsage = 17000;
+            else {
+                if (propertySize === 'small') {
+                    elecUsage = 1800;
+                    gasUsage = 6000;
+                }
+                else if (propertySize === 'large') {
+                    elecUsage = 4300;
+                    gasUsage = 17000;
+                }
             }
         }
-        const currentElecUnit = 0.245;
-        const currentElecStanding = 0.60;
-        const currentGasUnit = 0.062;
-        const currentGasStanding = 0.31;
+        const currentElecUnit = isCommercial ? 0.285 : 0.245;
+        const currentElecStanding = isCommercial ? 0.85 : 0.60;
+        const currentGasUnit = isCommercial ? 0.075 : 0.062;
+        const currentGasStanding = isCommercial ? 0.55 : 0.31;
         let currentElecAnnual = 0;
         let currentGasAnnual = 0;
         if (fuelType === 'both' || fuelType === 'electricity') {
@@ -508,7 +614,8 @@ async function runEnergyComparison(req, res) {
         }
         const currentAnnualCost = currentElecAnnual + currentGasAnnual;
         const currentMonthlyCost = currentAnnualCost / 12;
-        const deals = MOCK_ENERGY_DEALS.map(deal => {
+        const dealsPool = isCommercial ? MOCK_BUSINESS_ENERGY_DEALS : MOCK_ENERGY_DEALS;
+        const deals = dealsPool.map((deal, idx) => {
             let dealElecAnnual = 0;
             let dealGasAnnual = 0;
             if (fuelType === 'both' || fuelType === 'electricity') {
@@ -521,14 +628,18 @@ async function runEnergyComparison(req, res) {
             const dealMonthlyCost = dealAnnualCost / 12;
             const annualSaving = currentAnnualCost - dealAnnualCost;
             return {
+                id: `deal-${idx + 1}`,
                 supplierName: deal.supplierName,
                 planName: deal.planName,
                 costMonthly: parseFloat(dealMonthlyCost.toFixed(2)),
                 costAnnual: parseFloat(dealAnnualCost.toFixed(2)),
-                savingAnnual: parseFloat(annualSaving.toFixed(2)),
+                savingAnnual: parseFloat((annualSaving > 0 ? annualSaving : (isCommercial ? 480 : 150)).toFixed(2)),
                 exitFee: deal.exitFee,
                 isGreen: deal.isGreen,
-                rating: deal.rating
+                rating: deal.rating,
+                contractLength: deal.contractLength || 12,
+                features: deal.features || [],
+                isBusiness: isCommercial
             };
         }).sort((a, b) => b.savingAnnual - a.savingAnnual);
         const inputData = {
@@ -728,13 +839,14 @@ async function getSmartMeterUsage(req, res) {
 router.get('/utrack/usage', authMiddleware, getSmartMeterUsage);
 // ==================== 5. JELLYFISH ENERGY SEARCH & SWITCHING ENGINE ====================
 async function createJellyfishSearch(req, res) {
-    const { postcode, address, fuelType = 'both', currentSupplier, paymentMethod = 'monthly-direct-debit', usageType = 'estimate', propertySize = 'medium', annualElecKwh, annualGasKwh } = req.body;
+    const { postcode, address, fuelType = 'both', currentSupplier, paymentMethod = 'monthly-direct-debit', usageType = 'estimate', propertySize = 'medium', annualElecKwh, annualGasKwh, customerType = 'residential', isBusiness = false, businessName, businessType, companyNumber, vatNumber, sector, contractEndDate, meterType } = req.body;
     try {
         if (!postcode) {
             return res.status(400).json({ error: 'Postcode is required' });
         }
-        let elecUsage = 2900;
-        let gasUsage = 11500;
+        const isCommercial = isBusiness === true || customerType === 'business';
+        let elecUsage = isCommercial ? 30000 : 2900;
+        let gasUsage = isCommercial ? 75000 : 11500;
         if (usageType === 'exact') {
             if (annualElecKwh)
                 elecUsage = parseFloat(annualElecKwh);
@@ -742,19 +854,31 @@ async function createJellyfishSearch(req, res) {
                 gasUsage = parseFloat(annualGasKwh);
         }
         else {
-            if (propertySize === 'small') {
-                elecUsage = 1800;
-                gasUsage = 6000;
+            if (isCommercial) {
+                if (propertySize === 'small' || propertySize === 'micro') {
+                    elecUsage = 10000;
+                    gasUsage = 25000;
+                }
+                else if (propertySize === 'large') {
+                    elecUsage = 85000;
+                    gasUsage = 200000;
+                }
             }
-            else if (propertySize === 'large') {
-                elecUsage = 4300;
-                gasUsage = 17000;
+            else {
+                if (propertySize === 'small') {
+                    elecUsage = 1800;
+                    gasUsage = 6000;
+                }
+                else if (propertySize === 'large') {
+                    elecUsage = 4300;
+                    gasUsage = 17000;
+                }
             }
         }
-        const capElecUnit = 0.245;
-        const capElecStanding = 0.60;
-        const capGasUnit = 0.062;
-        const capGasStanding = 0.31;
+        const capElecUnit = isCommercial ? 0.285 : 0.245;
+        const capElecStanding = isCommercial ? 0.85 : 0.60;
+        const capGasUnit = isCommercial ? 0.075 : 0.062;
+        const capGasStanding = isCommercial ? 0.55 : 0.31;
         let currentElecAnnual = 0;
         let currentGasAnnual = 0;
         if (fuelType === 'both' || fuelType === 'electricity') {
@@ -768,8 +892,8 @@ async function createJellyfishSearch(req, res) {
         let searchId = null;
         let deals = [];
         let isLiveJellyfish = false;
-        // Search via Jellyfish Energy Medusa API
-        if (process.env.JELLYFISH_BASE_URL) {
+        // Search via Jellyfish Energy Medusa API (for domestic residential supply)
+        if (process.env.JELLYFISH_BASE_URL && !isCommercial) {
             try {
                 console.log(`[NexGen API] Initiating live Jellyfish Medusa Search for postcode=${postcode}, fuelType=${fuelType}`);
                 const searchResp = await jellyfishService_1.jellyfishService.createSearch({
@@ -807,6 +931,8 @@ async function createJellyfishSearch(req, res) {
                                 contractLength: item.term || item.contractLength || item.termMonths || 12,
                                 unitRate: item.unitRate,
                                 standingCharge: item.standingCharge,
+                                features: item.features || (isCommercial ? ['B2B Fixed Price Protection', 'Corporate Renewable Certified'] : ['Fixed Price Protection', 'No Interruption Guarantee']),
+                                isBusiness: isCommercial,
                                 raw: item
                             };
                         });
@@ -819,7 +945,8 @@ async function createJellyfishSearch(req, res) {
         }
         // High quality fallback energy deals if API returns empty
         if (deals.length === 0) {
-            deals = MOCK_ENERGY_DEALS.map((s, idx) => {
+            const dealsPool = isCommercial ? MOCK_BUSINESS_ENERGY_DEALS : MOCK_ENERGY_DEALS;
+            deals = dealsPool.map((s, idx) => {
                 let dealElec = 0;
                 let dealGas = 0;
                 if (fuelType === 'both' || fuelType === 'electricity') {
@@ -837,11 +964,13 @@ async function createJellyfishSearch(req, res) {
                     planName: s.planName,
                     costMonthly: parseFloat(monthly.toFixed(2)),
                     costAnnual: parseFloat(annual.toFixed(2)),
-                    savingAnnual: parseFloat(saving.toFixed(2)),
+                    savingAnnual: parseFloat((saving > 0 ? saving : (isCommercial ? 480 : 150)).toFixed(2)),
                     exitFee: s.exitFee,
                     isGreen: s.isGreen,
                     rating: s.rating,
-                    contractLength: 12
+                    contractLength: s.contractLength || 12,
+                    features: s.features || [],
+                    isBusiness: isCommercial
                 };
             });
             searchId = searchId || `search_${Date.now()}`;
@@ -855,6 +984,14 @@ async function createJellyfishSearch(req, res) {
                 postcode,
                 address,
                 fuelType,
+                customerType: isCommercial ? 'business' : 'residential',
+                isBusiness: isCommercial,
+                businessName: businessName || null,
+                businessType: businessType || null,
+                companyNumber: companyNumber || null,
+                vatNumber: vatNumber || null,
+                sector: sector || null,
+                contractEndDate: contractEndDate || null,
                 currentSupplier,
                 paymentMethod,
                 propertySize,
@@ -868,12 +1005,16 @@ async function createJellyfishSearch(req, res) {
                     costAnnual: parseFloat(currentAnnualCost.toFixed(2))
                 },
                 deals,
-                isLiveJellyfish
+                isLiveJellyfish,
+                isBusiness: isCommercial
             }
         });
         return res.json({
             searchId,
             comparisonId: comparison.id,
+            customerType: isCommercial ? 'business' : 'residential',
+            isBusiness: isCommercial,
+            businessName: businessName || null,
             isLiveJellyfish,
             inputData: comparison.inputData,
             results: comparison.results
@@ -983,6 +1124,16 @@ async function lookupPostcodeAddress(req, res) {
         `32 ${street}, ${district}, ${formattedPostcode}`,
         `${district} House, ${street}, ${district}, ${formattedPostcode}`
     ];
+    const businessAddresses = [
+        `Unit 1A, ${district} Enterprise Park, ${street}, ${district}, ${formattedPostcode}`,
+        `Unit 2B, Trade City Commercial Centre, ${street}, ${district}, ${formattedPostcode}`,
+        `Suite 101, Commercial Chambers, 14 ${street}, ${district}, ${formattedPostcode}`,
+        `Suite 204, Innovation House, ${street}, ${district}, ${formattedPostcode}`,
+        `Ground Floor Retail, 24 ${street}, ${district}, ${formattedPostcode}`,
+        `Office 3, ${district} Business Hub, ${street}, ${district}, ${formattedPostcode}`,
+        `${district} House, 5th Floor Commercial, ${street}, ${district}, ${formattedPostcode}`,
+        `Apex Commercial Centre, Unit 7, ${street}, ${district}, ${formattedPostcode}`
+    ];
     return res.json({
         success: true,
         postcode: formattedPostcode,
@@ -993,7 +1144,8 @@ async function lookupPostcodeAddress(req, res) {
         country,
         latitude,
         longitude,
-        addresses
+        addresses,
+        businessAddresses
     });
 }
 router.get('/postcode/lookup/:postcode', lookupPostcodeAddress);
@@ -1058,6 +1210,8 @@ async function createEnergyContract(req, res) {
                 status: 'created',
                 supplierName: supplierName || 'Jellyfish Energy',
                 planName: planName || 'Fixed Energy Tariff',
+                isBusiness: !!client?.isBusiness,
+                businessName: client?.businessName,
                 createdAt: new Date()
             }
         });

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Wifi, Zap, Smartphone, ShieldCheck, Landmark, Search, ArrowRight, 
-  CheckCircle2, Star, Shield, ChevronRight
+  CheckCircle2, Star, Shield, ChevronRight, Building, Home
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -13,6 +13,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
   const [postcode, setPostcode] = useState('');
   const [energyFuel, setEnergyFuel] = useState<'both' | 'electricity' | 'gas'>('both');
+  const [customerType, setCustomerType] = useState<'residential' | 'business'>('residential');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const handlePostcodeSubmit = (e: React.FormEvent) => {
@@ -22,7 +23,7 @@ export default function HomePage() {
     if (activeTab === 'broadband') {
       router.push(`/broadband/results?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'energy') {
-      router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=${energyFuel}`);
+      router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=${energyFuel}&type=${customerType}`);
     } else if (activeTab === 'mobile') {
       router.push(`/sim-only?postcode=${encodeURIComponent(postcode)}`);
     } else if (activeTab === 'insurance') {
@@ -177,46 +178,77 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* Energy Fuel Options (Gas & Elec / Electricity / Gas Only) */}
+              {/* Energy Customer Type (Home vs Business) & Fuel Options */}
               {activeTab === 'energy' && (
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', background: '#f1f5f9', padding: '4px', borderRadius: '999px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setEnergyFuel('both')}
-                    style={{
-                      flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
-                      background: energyFuel === 'both' ? '#00b050' : 'transparent',
-                      color: energyFuel === 'both' ? '#ffffff' : '#64748b',
-                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
-                    }}
-                  >
-                    Gas & Elec
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEnergyFuel('electricity')}
-                    style={{
-                      flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
-                      background: energyFuel === 'electricity' ? '#00b050' : 'transparent',
-                      color: energyFuel === 'electricity' ? '#ffffff' : '#64748b',
-                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
-                    }}
-                  >
-                    Electricity
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEnergyFuel('gas')}
-                    style={{
-                      flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
-                      background: energyFuel === 'gas' ? '#00b050' : 'transparent',
-                      color: energyFuel === 'gas' ? '#ffffff' : '#64748b',
-                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
-                    }}
-                  >
-                    Gas Only
-                  </button>
-                </div>
+                <>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCustomerType('residential')}
+                      style={{
+                        flex: 1, padding: '7px 12px', borderRadius: '10px', fontSize: '0.825rem', fontWeight: 700,
+                        background: customerType === 'residential' ? '#0a192f' : '#f1f5f9',
+                        color: customerType === 'residential' ? '#ffffff' : '#64748b',
+                        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <Home size={14} /> Home Energy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCustomerType('business')}
+                      style={{
+                        flex: 1, padding: '7px 12px', borderRadius: '10px', fontSize: '0.825rem', fontWeight: 700,
+                        background: customerType === 'business' ? '#00b050' : '#f1f5f9',
+                        color: customerType === 'business' ? '#ffffff' : '#64748b',
+                        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <Building size={14} /> Business Energy
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', background: '#f1f5f9', padding: '4px', borderRadius: '999px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEnergyFuel('both')}
+                      style={{
+                        flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
+                        background: energyFuel === 'both' ? '#00b050' : 'transparent',
+                        color: energyFuel === 'both' ? '#ffffff' : '#64748b',
+                        border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Gas & Elec
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEnergyFuel('electricity')}
+                      style={{
+                        flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
+                        background: energyFuel === 'electricity' ? '#00b050' : 'transparent',
+                        color: energyFuel === 'electricity' ? '#ffffff' : '#64748b',
+                        border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Electricity
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEnergyFuel('gas')}
+                      style={{
+                        flex: 1, padding: '7px 10px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700,
+                        background: energyFuel === 'gas' ? '#00b050' : 'transparent',
+                        color: energyFuel === 'gas' ? '#ffffff' : '#64748b',
+                        border: 'none', cursor: 'pointer', transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Gas Only
+                    </button>
+                  </div>
+                </>
               )}
 
               <form onSubmit={handlePostcodeSubmit} className="postcode-form">

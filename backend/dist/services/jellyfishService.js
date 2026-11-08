@@ -137,7 +137,7 @@ class JellyfishService {
             usage: Math.round(usage),
             mpxn: params.mpxn || '1537036501',
             startDate: startDate,
-            commission: 2.0,
+            commission: 1.0,
             shortCode: process.env.JELLYFISH_SHORT_CODE || 'NEPOSOLT'
         };
         console.log(`[Jellyfish Medusa API] Sending POST /searches: ref=${ref}, fuel=${payload.energy}, usage=${payload.usage}, shortCode=${payload.shortCode}`);

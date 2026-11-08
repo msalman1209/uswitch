@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Zap, Flame, ShieldCheck, Search, ArrowRight, Leaf, RefreshCw } from 'lucide-react';
+import { Zap, Flame, ShieldCheck, Search, ArrowRight, Leaf, RefreshCw, Building, Home } from 'lucide-react';
 
 export default function EnergyLandingPage() {
   return (
@@ -22,7 +22,9 @@ function EnergyLanding() {
   const searchParams = useSearchParams();
   const initialPostcode = searchParams.get('postcode') || '';
   const initialFuel = (searchParams.get('fuel') as any) || 'both';
+  const initialType = (searchParams.get('type') as any) || 'residential';
 
+  const [customerType, setCustomerType] = useState<'residential' | 'business'>(initialType);
   const [fuelType, setFuelType] = useState<'both' | 'electricity' | 'gas'>(initialFuel);
   const [postcode, setPostcode] = useState(initialPostcode);
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ function EnergyLanding() {
       setError('Please enter a valid UK postcode (e.g. SW1A 1AA)');
       return;
     }
-    router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=${fuelType}`);
+    router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=${fuelType}&type=${customerType}`);
   };
 
   return (
@@ -62,7 +64,37 @@ function EnergyLanding() {
 
             {/* Energy Switcher Calculator Card */}
             <div className="hero-calc-card">
-              <h3 style={{ marginBottom: '16px', fontSize: '1.25rem' }}>Compare Energy Tariffs</h3>
+              <h3 style={{ marginBottom: '14px', fontSize: '1.25rem' }}>Compare Energy Tariffs</h3>
+
+              {/* Customer Type Toggle */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                <button
+                  type="button"
+                  onClick={() => setCustomerType('residential')}
+                  style={{
+                    flex: 1, padding: '8px 12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700,
+                    background: customerType === 'residential' ? '#0a192f' : '#f1f5f9',
+                    color: customerType === 'residential' ? '#ffffff' : '#64748b',
+                    border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <Home size={15} /> Home
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomerType('business')}
+                  style={{
+                    flex: 1, padding: '8px 12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700,
+                    background: customerType === 'business' ? '#00b050' : '#f1f5f9',
+                    color: customerType === 'business' ? '#ffffff' : '#64748b',
+                    border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <Building size={15} /> Business
+                </button>
+              </div>
 
               {/* Fuel Selector */}
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: 'var(--bg-subtle)', padding: '4px', borderRadius: 'var(--radius-full)' }}>
