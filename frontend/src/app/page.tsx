@@ -112,9 +112,9 @@ export default function HomePage() {
 
   const faqs = [
     {
-      q: 'Is NexGen Power Solutions completely free to use?',
-      a: 'Yes, NexGen Power Solutions is 100% free for customers. We earn a commission from energy suppliers, broadband providers, and financial institutions when you successfully switch through our site.'
-    },
+      q: 'Is NexGen Power SolutionsNexGen completely free to use?',
+      a: 'Yes,  Power Solutions is 100% free for customers. We earn a commission from energy suppliers, broadband providers, and financial institutions when you successfully switch through our site.'
+    }, 
     {
       q: 'Will my energy or broadband connection be interrupted when I switch?',
       a: 'No! Your physical supply remains continuous. There is no downtime or loss of power/internet connection during the switching process.'
