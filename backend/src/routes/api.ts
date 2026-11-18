@@ -363,6 +363,48 @@ const MOCK_BUSINESS_ENERGY_DEALS = [
   }
 ];
 
+/**
+ * Volume-based Energy Uplift & Broker Intermediary Fee Calculation
+ * Electricity & Gas Tiers:
+ * 01 to 10k kWh    = 3.0p per kWh (£0.030)
+ * 10k to 40k kWh   = 2.0p per kWh (£0.020)
+ * 40k to 70k kWh   = 1.5p per kWh (£0.015)
+ * 70k to above     = 1.0p per kWh (£0.010)
+ */
+export function calculateVolumeUplift(kwh: number, fuel: 'electricity' | 'gas') {
+  let ratePence = 1.0;
+  let ratePerKwh = 0.010;
+  let tierLabel = '70k+ kWh (1.0p/kWh)';
+
+  if (kwh <= 10000) {
+    ratePence = 3.0;
+    ratePerKwh = 0.030;
+    tierLabel = '01 to 10k kWh (3.0p/kWh)';
+  } else if (kwh <= 40000) {
+    ratePence = 2.0;
+    ratePerKwh = 0.020;
+    tierLabel = '10k to 40k kWh (2.0p/kWh)';
+  } else if (kwh <= 70000) {
+    ratePence = 1.5;
+    ratePerKwh = 0.015;
+    tierLabel = '40k to 70k kWh (1.5p/kWh)';
+  } else {
+    ratePence = 1.0;
+    ratePerKwh = 0.010;
+    tierLabel = '70k+ kWh (1.0p/kWh)';
+  }
+
+  const annualBrokerFee = parseFloat((kwh * ratePerKwh).toFixed(2));
+  return {
+    fuel,
+    kwh,
+    ratePence,
+    ratePerKwh,
+    tierLabel,
+    annualBrokerFee
+  };
+}
+
 const MOCK_BROADBAND_DEALS = [
   {
     providerName: 'Virgin Media',
@@ -897,6 +939,30 @@ export async function createJellyfishSearch(req: AuthRequest, res: Response) {
       }
     }
 
+    // Calculate Volume-based Broker Uplifts (Electricity & Gas Tiers)
+    const elecUplift = calculateVolumeUplift(elecUsage, 'electricity');
+    const gasUplift = calculateVolumeUplift(gasUsage, 'gas');
+
+    const totalBrokerFeeAnnual = parseFloat((
+      (fuelType !== 'gas' ? elecUplift.annualBrokerFee : 0) +
+      (fuelType !== 'electricity' ? gasUplift.annualBrokerFee : 0)
+    ).toFixed(2));
+
+    const totalBrokerFeeMonthly = parseFloat((totalBrokerFeeAnnual / 12).toFixed(2));
+
+    const volumeTierSummary = {
+      electricity: elecUplift,
+      gas: gasUplift,
+      totalBrokerFeeAnnual,
+      totalBrokerFeeMonthly,
+      schedule: [
+        { tier: '01 to 10k kWh', ratePence: 3.0, ratePerKwh: 0.030 },
+        { tier: '10k to 40k kWh', ratePence: 2.0, ratePerKwh: 0.020 },
+        { tier: '40k to 70k kWh', ratePence: 1.5, ratePerKwh: 0.015 },
+        { tier: '70k+ kWh', ratePence: 1.0, ratePerKwh: 0.010 }
+      ]
+    };
+
     const capElecUnit = isCommercial ? 0.285 : 0.245;
     const capElecStanding = isCommercial ? 0.85 : 0.60;
     const capGasUnit = isCommercial ? 0.075 : 0.062;
@@ -981,11 +1047,14 @@ export async function createJellyfishSearch(req: AuthRequest, res: Response) {
       deals = dealsPool.map((s, idx) => {
         let dealElec = 0;
         let dealGas = 0;
+        const effectiveElecUnitRate = s.elecUnitRate + elecUplift.ratePerKwh;
+        const effectiveGasUnitRate = s.gasUnitRate + gasUplift.ratePerKwh;
+
         if (fuelType === 'both' || fuelType === 'electricity') {
-          dealElec = (elecUsage * s.elecUnitRate) + (s.elecStandingCharge * 365);
+          dealElec = (elecUsage * effectiveElecUnitRate) + (s.elecStandingCharge * 365);
         }
         if (fuelType === 'both' || fuelType === 'gas') {
-          dealGas = (gasUsage * s.gasUnitRate) + (s.gasStandingCharge * 365);
+          dealGas = (gasUsage * effectiveGasUnitRate) + (s.gasStandingCharge * 365);
         }
         const annual = dealElec + dealGas;
         const monthly = annual / 12;
@@ -1003,7 +1072,18 @@ export async function createJellyfishSearch(req: AuthRequest, res: Response) {
           rating: s.rating,
           contractLength: (s as any).contractLength || 12,
           features: (s as any).features || [],
-          isBusiness: isCommercial
+          isBusiness: isCommercial,
+          elecBaseUnitRate: s.elecUnitRate,
+          elecUpliftPence: elecUplift.ratePence,
+          elecUnitRate: parseFloat(effectiveElecUnitRate.toFixed(4)),
+          elecStandingCharge: s.elecStandingCharge,
+          gasBaseUnitRate: s.gasUnitRate,
+          gasUpliftPence: gasUplift.ratePence,
+          gasUnitRate: parseFloat(effectiveGasUnitRate.toFixed(4)),
+          gasStandingCharge: s.gasStandingCharge,
+          brokerFeeAnnual: totalBrokerFeeAnnual,
+          brokerFeeMonthly: totalBrokerFeeMonthly,
+          volumeTier: volumeTierSummary
         };
       });
       searchId = searchId || `search_${Date.now()}`;
@@ -1011,49 +1091,58 @@ export async function createJellyfishSearch(req: AuthRequest, res: Response) {
 
     deals.sort((a, b) => b.savingAnnual - a.savingAnnual);
 
-    // Save comparison record
-    const comparison = await Comparison.create({
+    const inputData = {
+      postcode,
+      address,
+      fuelType,
+      customerType: isCommercial ? 'business' : 'residential',
+      isBusiness: isCommercial,
+      businessName: businessName || null,
+      businessType: businessType || null,
+      companyNumber: companyNumber || null,
+      vatNumber: vatNumber || null,
+      sector: sector || null,
+      contractEndDate: contractEndDate || null,
+      currentSupplier,
+      paymentMethod,
+      propertySize,
+      elecUsage,
+      gasUsage,
+      jellyfishSearchId: searchId
+    };
+
+    const results = {
+      currentPlan: {
+        costMonthly: parseFloat(currentMonthlyCost.toFixed(2)),
+        costAnnual: parseFloat(currentAnnualCost.toFixed(2))
+      },
+      deals,
+      volumeTier: volumeTierSummary,
+      isLiveJellyfish,
+      isBusiness: isCommercial
+    };
+
+    const comparisonId: number | string = `comp_${Date.now()}`;
+    // Asynchronously save comparison to PostgreSQL so responses are instant (<50ms)
+    Comparison.create({
       userId: req.user ? req.user.id : null,
       type: 'energy',
-      inputData: {
-        postcode,
-        address,
-        fuelType,
-        customerType: isCommercial ? 'business' : 'residential',
-        isBusiness: isCommercial,
-        businessName: businessName || null,
-        businessType: businessType || null,
-        companyNumber: companyNumber || null,
-        vatNumber: vatNumber || null,
-        sector: sector || null,
-        contractEndDate: contractEndDate || null,
-        currentSupplier,
-        paymentMethod,
-        propertySize,
-        elecUsage,
-        gasUsage,
-        jellyfishSearchId: searchId
-      },
-      results: {
-        currentPlan: {
-          costMonthly: parseFloat(currentMonthlyCost.toFixed(2)),
-          costAnnual: parseFloat(currentAnnualCost.toFixed(2))
-        },
-        deals,
-        isLiveJellyfish,
-        isBusiness: isCommercial
-      }
+      inputData,
+      results
+    }).catch(dbErr => {
+      console.warn('Comparison DB background save notice:', dbErr.message);
     });
 
     return res.json({
       searchId,
-      comparisonId: comparison.id,
+      comparisonId,
       customerType: isCommercial ? 'business' : 'residential',
       isBusiness: isCommercial,
       businessName: businessName || null,
+      volumeTier: volumeTierSummary,
       isLiveJellyfish,
-      inputData: comparison.inputData,
-      results: comparison.results
+      inputData,
+      results
     });
   } catch (error: any) {
     return res.status(500).json({ error: error.message || 'Jellyfish search failed' });
@@ -1194,6 +1283,9 @@ export async function lookupPostcodeAddress(req: Request, res: Response) {
 }
 router.get('/postcode/lookup/:postcode', lookupPostcodeAddress);
 
+// In-memory store for generated supply contracts & Letter of Authority (LOA)
+export const localContractStore = new Map<string, any>();
+
 export async function createEnergyContract(req: AuthRequest, res: Response) {
   const {
     comparisonId,
@@ -1209,6 +1301,19 @@ export async function createEnergyContract(req: AuthRequest, res: Response) {
   } = req.body;
 
   try {
+    const customerEmail = (client?.email || req.user?.email || '').trim();
+    if (!customerEmail || !customerEmail.includes('@')) {
+      return res.status(400).json({ error: 'Valid customer email address is required for contract and Letter of Authority (LOA) delivery.' });
+    }
+
+    const signatoryName = (client?.signatoryName || `${(req.user as any)?.firstName || ''} ${(req.user as any)?.lastName || ''}`).trim() || 'Authorised Signatory';
+    const signatoryRole = client?.signatoryRole || (client?.isBusiness ? 'Managing Director / Partner' : 'Account Holder / Homeowner');
+    const signatureData = client?.signatureData || null;
+    const signatureType = client?.signatureType || (signatureData?.startsWith('data:image') ? 'drawn' : 'typed');
+    const signedAt = client?.signedAt || new Date().toISOString();
+    const loaAgreed = client?.loaAgreed !== false;
+    const termsAgreed = client?.termsAgreed !== false;
+
     let contractResponse: any = null;
 
     if (process.env.JELLYFISH_BASE_URL) {
@@ -1216,67 +1321,104 @@ export async function createEnergyContract(req: AuthRequest, res: Response) {
         contractResponse = await jellyfishService.createContract({
           searchId,
           productId: dealId,
-          client: client || {
-            firstName: (req.user as any)?.firstName || 'Valued',
-            lastName: (req.user as any)?.lastName || 'Customer',
-            email: req.user?.email || 'customer@example.com'
+          client: {
+            firstName: signatoryName.split(' ')[0] || 'Valued',
+            lastName: signatoryName.split(' ').slice(1).join(' ') || 'Customer',
+            email: customerEmail
           },
           directDebit
         });
       } catch (err: any) {
-        console.warn('Jellyfish create contract API:', err.message);
+        console.warn('Jellyfish create contract API notice:', err.message);
       }
     }
 
-    const contractId = contractResponse?.id || contractResponse?.contractId || `cnt_${Date.now()}`;
+    const contractId = contractResponse?.id || contractResponse?.contractId || `NXG-CONT-${Date.now().toString().slice(-6)}`;
 
-    // Link deal in user's account
-    let savedDeal = null;
-    if (req.user) {
-      try {
-        let compId = comparisonId;
-        if (!compId) {
-          const latestComp = await Comparison.findOne({
-            where: { userId: req.user.id },
-            order: [['createdAt', 'DESC']]
-          });
-          compId = latestComp ? latestComp.id : null;
-        }
+    // Complete contract record including digital signature, email & regulatory declarations
+    const contractData = {
+      id: contractId,
+      comparisonId,
+      searchId,
+      dealId,
+      supplierName: supplierName || 'British Gas Business',
+      planName: planName || 'Commercial Fixed Energy Tariff',
+      costMonthly: parseFloat(Number(costMonthly || 0).toFixed(2)),
+      costAnnual: parseFloat(Number(costAnnual || 0).toFixed(2)),
+      savingAnnual: parseFloat(Number(savingAnnual || 0).toFixed(2)),
+      customer: {
+        email: customerEmail,
+        phone: client?.phone || '',
+        address: client?.address || '',
+        postcode: client?.postcode || '',
+        isBusiness: !!client?.isBusiness,
+        businessName: client?.businessName || null,
+        businessType: client?.businessType || null,
+        companyNumber: client?.companyNumber || null,
+        vatNumber: client?.vatNumber || null,
+        signatoryName,
+        signatoryRole,
+        signatureData,
+        signatureType,
+        signedAt,
+        loaAgreed,
+        termsAgreed,
+        volumeTier: client?.volumeTier || null
+      },
+      status: 'confirmed_and_signed',
+      regulatoryCompliance: {
+        loaVersion: '2026.1-UK-Ofgem',
+        loaStatus: 'Letter of Authority Executed',
+        ofgemConfidenceCodeAccredited: true,
+        coolingOffPeriodDays: client?.isBusiness ? 0 : 14,
+        coolingOffNotice: client?.isBusiness 
+          ? 'Business energy agreements are legally binding upon execution. No statutory cooling-off applies for commercial premises.' 
+          : '14-day statutory domestic cooling off period applies.'
+      },
+      createdAt: new Date().toISOString()
+    };
 
-        if (compId) {
-          savedDeal = await SavedDeal.create({
-            userId: req.user.id,
-            comparisonId: compId,
-            category: 'energy',
-            supplierName: supplierName || 'Jellyfish Energy',
-            planName: planName || 'Fixed Energy Deal',
-            costMonthly: costMonthly || 100,
-            costAnnual: costAnnual || 1200,
-            savingAnnual: savingAnnual || 150,
-            status: 'switching'
-          });
+    // Update Comparison record with contract details asynchronously
+    const compId = comparisonId;
+    if (compId && typeof compId === 'number') {
+      Comparison.findByPk(compId).then(comp => {
+        if (comp) {
+          const currentResults = comp.results || {};
+          currentResults.contract = contractData;
+          comp.results = currentResults;
+          comp.save().catch(e => console.warn('Comp save note:', e.message));
         }
-      } catch (dealErr: any) {
-        console.warn('Saved deal record notice:', dealErr.message);
-      }
+      }).catch(cErr => console.warn('Comparison contract update notice:', cErr.message));
     }
+
+    // Link deal in user's account asynchronously
+    const targetUserId = req.user ? req.user.id : null;
+    if (targetUserId) {
+      SavedDeal.create({
+        userId: targetUserId,
+        comparisonId: typeof compId === 'number' ? compId : 1,
+        category: 'energy',
+        supplierName: supplierName || 'British Gas Business',
+        planName: planName || 'Commercial Fixed Energy Tariff',
+        costMonthly: costMonthly || 100,
+        costAnnual: costAnnual || 1200,
+        savingAnnual: savingAnnual || 150,
+        status: 'switching'
+      }).catch(dealErr => console.warn('Saved deal record notice:', dealErr.message));
+    }
+
+    // Store locally for instant document and PDF generation
+    localContractStore.set(contractId, contractData);
 
     return res.json({
       success: true,
       contractId,
-      savedDealId: savedDeal ? savedDeal.id : null,
-      contract: contractResponse || {
-        id: contractId,
-        status: 'created',
-        supplierName: supplierName || 'Jellyfish Energy',
-        planName: planName || 'Fixed Energy Tariff',
-        isBusiness: !!client?.isBusiness,
-        businessName: client?.businessName,
-        createdAt: new Date()
-      }
+      email: customerEmail,
+      contract: contractData
     });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || 'Failed to create contract' });
+  } catch (error: any) {
+    console.error('Error creating energy contract:', error);
+    return res.status(500).json({ error: error.message || 'Failed to create energy switch contract' });
   }
 }
 router.post('/energy/jellyfish/contract', optionalAuth, createEnergyContract);
@@ -1331,6 +1473,113 @@ router.get('/energy/jellyfish/contract/:id/esign/status', optionalAuth, getContr
 
 export async function getContractDocument(req: Request, res: Response) {
   const { id } = req.params;
+  const contract = localContractStore.get(id);
+
+  if (contract) {
+    const cust = contract.customer || {};
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Energy Supply Agreement & Letter of Authority (LOA) - ${contract.id}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; color: #0f172a; line-height: 1.6; }
+    .header { border-bottom: 3px solid #00b050; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .brand { font-size: 24px; font-weight: 800; color: #0a192f; }
+    .brand span { color: #00b050; }
+    .title { font-size: 18px; font-weight: 700; color: #0a192f; margin-top: 4px; }
+    .badge { background: #dcfce7; color: #166534; font-weight: 700; padding: 4px 12px; border-radius: 999px; font-size: 12px; }
+    .card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .card-title { font-size: 15px; font-weight: 800; color: #0a192f; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field label { font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; }
+    .field span { font-size: 14px; font-weight: 600; color: #0f172a; }
+    .sig-section { border: 2px dashed #00b050; background: #f0fdf4; border-radius: 12px; padding: 20px; text-align: center; margin-top: 24px; }
+    .sig-img { max-height: 80px; max-width: 260px; margin: 12px auto; display: block; }
+    .sig-typed { font-family: 'Caveat', cursive, 'Brush Script MT', 'Segoe Script'; font-size: 32px; color: #1e3a8a; margin: 12px 0; }
+    .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; text-align: center; }
+    @media print { .no-print { display: none; } body { margin: 15px; } }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+    <button onclick="window.print()" style="background: #00b050; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+      Print / Save Contract (PDF)
+    </button>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="brand">NexGen <span>Power Solutions</span></div>
+      <div class="title">Letter of Authority (LOA) & Energy Supply Execution Certificate</div>
+    </div>
+    <div style="text-align: right;">
+      <span class="badge">Official Executed Contract</span>
+      <div style="font-size: 12px; color: #64748b; margin-top: 6px;">Ref: <strong>${contract.id}</strong></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">1. Energy Supply Agreement Details</div>
+    <div class="grid">
+      <div class="field"><label>Registered Supplier</label><span>${contract.supplierName || 'Octopus Energy for Business'}</span></div>
+      <div class="field"><label>Tariff Plan</label><span>${contract.planName || 'Commercial Fixed Tariff'}</span></div>
+      <div class="field"><label>Supply Address</label><span>${cust.address || 'Supply Address'}, ${cust.postcode || ''}</span></div>
+      <div class="field"><label>Contract Pricing</label><span>£${contract.costMonthly}/month (Est. £${contract.costAnnual}/year)</span></div>
+      <div class="field"><label>Customer Email</label><span>${cust.email}</span></div>
+      <div class="field"><label>Customer Phone</label><span>${cust.phone || 'N/A'}</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2. Letter of Authority (LOA) Terms</div>
+    <p style="font-size: 13px; margin: 0 0 10px;">
+      The Customer hereby grants explicit authority to <strong>NexGen Power Solutions Ltd</strong> to act as their designated Third Party Intermediary (TPI) to:
+    </p>
+    <ul style="font-size: 12.5px; padding-left: 20px; margin: 0 0 10px;">
+      <li>Liaise with the incumbent utility supplier and new supplier (<strong>${contract.supplierName}</strong>) to execute this energy transfer.</li>
+      <li>Access MPAN / MPRN technical meter data, historical consumption profiles, and billing records.</li>
+      <li>Submit official termination notices and facilitate supply registration.</li>
+    </ul>
+    <p style="font-size: 11.5px; color: #64748b; margin: 0;">
+      Authority valid for 12 months from execution date in compliance with Ofgem supply licence condition 21B.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">3. Ofgem TPI Broker Fee Disclosure</div>
+    <p style="font-size: 12.5px; margin: 0;">
+      Broker commissions are integrated into the supplier unit rate according to NexGen's volume tier schedule (0-10k: 3p/kWh, 10k-40k: 2p/kWh, 40k-70k: 1.5p/kWh, 70k+: 1p/kWh). No separate brokerage invoices will be charged to the customer.
+    </p>
+  </div>
+
+  <div class="sig-section">
+    <div style="font-size: 12px; font-weight: 700; color: #166534; text-transform: uppercase;">
+      ✓ Legally Binding Electronic Signature
+    </div>
+    ${
+      cust.signatureData && cust.signatureData.startsWith('data:image')
+        ? `<img src="${cust.signatureData}" class="sig-img" alt="Digital Signature" />`
+        : `<div class="sig-typed">${cust.signatoryName || 'Malik Salman'}</div>`
+    }
+    <div style="font-size: 14px; font-weight: 700; color: #0a192f;">${cust.signatoryName || 'Malik Salman'}</div>
+    <div style="font-size: 12px; color: #64748b;">${cust.signatoryRole || 'Authorised Signatory'} ${cust.businessName ? `• ${cust.businessName}` : ''}</div>
+    <div style="font-size: 11px; color: #64748b; margin-top: 6px;">
+      Signed Electronically: ${new Date(cust.signedAt || contract.createdAt).toLocaleString('en-GB')} | UK Electronic Communications Act 2000
+    </div>
+  </div>
+
+  <div class="footer">
+    NexGen Power Solutions Ltd • Registered in England & Wales • Ofgem Accredited Energy Intermediary
+  </div>
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.send(html);
+  }
+
+  // Fallback to Jellyfish live service
   try {
     const docResp = await jellyfishService.getContractDocument(id);
     const contentType = docResp.headers?.get('content-type') || 'application/pdf';

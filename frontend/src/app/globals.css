@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
 
 :root {
   --brand-primary: #0a192f;
@@ -1922,4 +1923,278 @@ select.form-control {
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid #bfdbfe;
+}
+
+/* ==========================================================================
+   ENERGY VOLUME PRICING TIERS & OFGEM TPI COMMISSION TRANSPARENCY
+   ========================================================================== */
+
+.volume-tier-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 18px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(10, 25, 47, 0.04);
+}
+
+.volume-tier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.volume-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 860px) {
+  .volume-tier-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .volume-tier-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.volume-tier-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.volume-tier-card.active-tier {
+  border-color: #00b050;
+  background: #f0fdf4;
+  box-shadow: 0 4px 16px rgba(0, 176, 80, 0.18);
+  transform: translateY(-2px);
+}
+
+.volume-tier-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #00b050;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.volume-tier-range {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.volume-tier-rate {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--brand-primary);
+  display: block;
+}
+
+.volume-tier-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+  display: block;
+}
+
+/* ==========================================================================
+   DIGITAL SIGNATURE PAD & LETTER OF AUTHORITY (LOA)
+   ========================================================================== */
+
+.signature-tab-group {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.signature-tab-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.signature-tab-btn.active {
+  background: #ffffff;
+  color: var(--brand-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.signature-pad-wrapper {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 140px;
+  display: block;
+  cursor: crosshair;
+  background: #fafafa;
+  touch-action: none;
+}
+
+.signature-guide-line {
+  position: absolute;
+  bottom: 34px;
+  left: 30px;
+  right: 30px;
+  border-bottom: 1px dashed #94a3b8;
+  pointer-events: none;
+}
+
+.signature-guide-text {
+  position: absolute;
+  bottom: 12px;
+  left: 30px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.signature-clear-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.signature-clear-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.signature-typed-preview {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  font-family: 'Caveat', 'Dancing Script', 'Brush Script MT', 'Segoe Script', cursive;
+  font-size: 2.2rem;
+  color: #1e3a8a;
+  letter-spacing: 0.02em;
+  padding: 0 20px;
+  text-align: center;
+  user-select: none;
+}
+
+.legal-notice-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.policy-accordion {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.policy-accordion-header {
+  padding: 12px 16px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.policy-accordion-body {
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.5;
+  max-height: 160px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.policy-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.policy-checkbox-label input {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: #00b050;
+  width: 16px;
+  height: 16px;
+}
+
+.switch-certificate-card {
+  background: #ffffff;
+  border: 2px solid #00b050;
+  border-radius: 18px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 176, 80, 0.1);
 }

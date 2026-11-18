@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Zap, Flame, ChevronRight, ChevronLeft, Building, CreditCard, 
   Leaf, Check, ShieldCheck, ArrowRight, Home,
-  Sparkles, Star, Search, RefreshCw, X, FileText, CheckCircle2, MapPin, Plus
+  Sparkles, Star, Search, RefreshCw, X, FileText, CheckCircle2, MapPin, Plus,
+  PenTool, Type, Download, ChevronDown, ChevronUp, Mail, Phone, Lock, Info, CheckCircle
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -102,6 +103,23 @@ function EnergyJourney() {
   const [switchModalDeal, setSwitchModalDeal] = useState<any | null>(null);
   const [switchSubmitting, setSwitchSubmitting] = useState(false);
   const [switchSuccess, setSwitchSuccess] = useState<any | null>(null);
+
+  // Email & Contact details for Switch & LOA dispatch
+  const [switchEmail, setSwitchEmail] = useState('');
+  const [switchPhone, setSwitchPhone] = useState('+44 20 7946 0912');
+
+  // Digital Signature Pad State
+  const [signatureMode, setSignatureMode] = useState<'draw' | 'type'>('draw');
+  const [typedSignature, setTypedSignature] = useState(signatoryName || 'Malik Salman');
+  const [signatureData, setSignatureData] = useState<string>('');
+  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Policy & Regulatory Consent State
+  const [loaAgreed, setLoaAgreed] = useState(true);
+  const [termsAgreed, setTermsAgreed] = useState(true);
+  const [directDebitAgreed, setDirectDebitAgreed] = useState(true);
+  const [policyAccordionOpen, setPolicyAccordionOpen] = useState<'loa' | 'tpi' | 'dd' | null>(null);
 
   // Switch between Residential Home and Business Premises
   const handleToggleCustomerType = (type: 'residential' | 'business') => {
@@ -272,16 +290,108 @@ function EnergyJourney() {
     }
   };
 
+  // Canvas Drawing Handlers
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    setIsDrawing(true);
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      setSignatureData(canvas.toDataURL('image/png'));
+    }
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignatureData('');
+  };
+
   // Open Switch Modal
   const openSwitchModal = (deal: any) => {
     setSwitchModalDeal(deal);
     setSwitchSuccess(null);
+    if (!switchEmail) {
+      const stored = localStorage.getItem('nexgen_user') || localStorage.getItem('uswitch_user');
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          if (u.email) setSwitchEmail(u.email);
+        } catch (e) {}
+      }
+      if (!switchEmail) setSwitchEmail('salman.khan@nexgenenergy.co.uk');
+    }
+    if (!typedSignature) {
+      setTypedSignature(signatoryName || 'Malik Salman');
+    }
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+    }, 120);
   };
 
   // Submit Deal Switch via Jellyfish Contract API
   const handleConfirmSwitch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!switchModalDeal) return;
+
+    if (!switchEmail || !switchEmail.includes('@')) {
+      alert('Please enter a valid email address to receive your contract and Letter of Authority (LOA).');
+      return;
+    }
+    if (!loaAgreed || !termsAgreed || !directDebitAgreed) {
+      alert('Please check all regulatory compliance declarations (Letter of Authority, Supply Terms, and Direct Debit Guarantee) to proceed.');
+      return;
+    }
+
+    const currentSignatory = customerType === 'business' ? (signatoryName || 'Malik Salman') : 'Malik Salman';
+    const sigPayload = signatureMode === 'draw' 
+      ? (signatureData || `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60"><text x="10" y="40" font-family="Caveat, cursive" font-size="28" fill="%230f172a">${encodeURIComponent(currentSignatory)}</text></svg>`)
+      : `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60"><text x="10" y="40" font-family="Caveat, cursive" font-size="28" fill="%231e3a8a">${encodeURIComponent(typedSignature || currentSignatory)}</text></svg>`;
+
     setSwitchSubmitting(true);
 
     const token = (localStorage.getItem('nexgen_token') || localStorage.getItem('uswitch_token'));
@@ -303,6 +413,8 @@ function EnergyJourney() {
           costAnnual: switchModalDeal.costAnnual,
           savingAnnual: switchModalDeal.savingAnnual,
           client: {
+            email: switchEmail,
+            phone: switchPhone,
             address: selectedAddress,
             postcode,
             isBusiness: customerType === 'business',
@@ -310,17 +422,26 @@ function EnergyJourney() {
             businessType: customerType === 'business' ? businessType : undefined,
             companyNumber: customerType === 'business' ? companyNumber : undefined,
             vatNumber: customerType === 'business' && isVatRegistered ? vatNumber : undefined,
-            signatoryName: customerType === 'business' ? signatoryName : undefined,
-            signatoryRole: customerType === 'business' ? signatoryRole : undefined
+            signatoryName: currentSignatory,
+            signatoryRole: customerType === 'business' ? signatoryRole : 'Account Holder',
+            signatureData: sigPayload,
+            signatureType: signatureMode === 'draw' ? 'drawn' : 'typed',
+            signedAt: new Date().toISOString(),
+            loaAgreed: true,
+            termsAgreed: true,
+            volumeTier: comparisonResults?.results?.volumeTier
           }
         })
       });
 
       const resData = await contractResp.json();
+      if (!contractResp.ok) {
+        throw new Error(resData.error || 'Failed to submit switch');
+      }
       setSwitchSuccess(resData);
     } catch (err: any) {
       console.error('Switch error:', err);
-      alert('Could not complete switch. Please try again.');
+      alert(err.message || 'Could not complete switch. Please try again.');
     } finally {
       setSwitchSubmitting(false);
     }
@@ -1324,6 +1445,57 @@ function EnergyJourney() {
               </div>
             </div>
 
+            {/* OFGEM TPI VOLUME PRICING TIERS TRANSPARENCY BANNER */}
+            <div className="volume-tier-section">
+              <div className="volume-tier-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <ShieldCheck size={20} style={{ color: '#00b050' }} />
+                    <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
+                      Consumption-Based Volume Pricing Tiers (Electricity & Gas)
+                    </span>
+                    <span style={{ background: '#e0f2fe', color: '#0369a1', fontSize: '0.75rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' }}>
+                      Ofgem TPI Transparent Schedule
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.825rem', color: '#64748b', marginTop: '4px', marginBottom: 0 }}>
+                    Third Party Intermediary (TPI) uplifts are automatically applied to the base supplier unit rates based on your annual consumption:
+                  </p>
+                </div>
+                {comparisonResults.results?.volumeTier && (
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '8px 16px', borderRadius: '12px', fontSize: '0.85rem', color: '#166534', fontWeight: 700 }}>
+                    Annual Intermediary Commission: £{(comparisonResults.results.volumeTier.totalBrokerFeeAnnual || comparisonResults.results.volumeTier.totalAnnualBrokerFee)?.toLocaleString()}/yr (£{(comparisonResults.results.volumeTier.totalBrokerFeeMonthly || comparisonResults.results.volumeTier.totalMonthlyBrokerFee)}/mo)
+                  </div>
+                )}
+              </div>
+
+              <div className="volume-tier-grid">
+                {[
+                  { range: '01 to 10k kWh', rate: '3p / kWh', name: 'Tier 1 (Micro / Low)', elecActive: (Number(annualElecKwh) || 0) <= 10000, gasActive: (Number(annualGasKwh) || 0) <= 10000 },
+                  { range: '10k to 40k kWh', rate: '2p / kWh', name: 'Tier 2 (Small SME)', elecActive: (Number(annualElecKwh) || 0) > 10000 && (Number(annualElecKwh) || 0) <= 40000, gasActive: (Number(annualGasKwh) || 0) > 10000 && (Number(annualGasKwh) || 0) <= 40000 },
+                  { range: '40k to 70k kWh', rate: '1.5p / kWh', name: 'Tier 3 (Medium SME)', elecActive: (Number(annualElecKwh) || 0) > 40000 && (Number(annualElecKwh) || 0) <= 70000, gasActive: (Number(annualGasKwh) || 0) > 40000 && (Number(annualGasKwh) || 0) <= 70000 },
+                  { range: '70k to above', rate: '1p / kWh', name: 'Tier 4 (Large / Scale)', elecActive: (Number(annualElecKwh) || 0) > 70000, gasActive: (Number(annualGasKwh) || 0) > 70000 },
+                ].map((tier, idx) => {
+                  const isElecActive = tier.elecActive;
+                  const isGasActive = tier.gasActive && fuelType !== 'electricity';
+                  const isActive = isElecActive || isGasActive;
+
+                  return (
+                    <div key={idx} className={`volume-tier-card ${isActive ? 'active-tier' : ''}`}>
+                      {isActive && (
+                        <span className="volume-tier-badge">
+                          {isElecActive && isGasActive ? '⚡ Elec & Gas Active' : isElecActive ? '⚡ Elec Active' : '🔥 Gas Active'}
+                        </span>
+                      )}
+                      <span className="volume-tier-range">{tier.range}</span>
+                      <span className="volume-tier-rate">{tier.rate}</span>
+                      <span className="volume-tier-sub">{tier.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Results Grid (Filters Sidebar + Deals List) */}
             <div className="results-grid">
               
@@ -1473,31 +1645,43 @@ function EnergyJourney() {
 
                         {/* Expandable Tariff Rates Breakdown */}
                         {isExpanded && (
-                          <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #f1f5f9', paddingTop: '16px', marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', background: '#f8fafc', padding: '16px', borderRadius: '12px' }}>
+                          <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #f1f5f9', paddingTop: '16px', marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', background: '#f8fafc', padding: '18px', borderRadius: '14px' }}>
                             <div>
-                              <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Electricity Unit Rate</span>
-                              <span style={{ display: 'block', fontWeight: 700, color: 'var(--brand-primary)', fontSize: '0.95rem' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Electricity Rate Breakdown</span>
+                              <span style={{ display: 'block', fontWeight: 800, color: 'var(--brand-primary)', fontSize: '1rem' }}>
                                 {deal.elecUnitRate ? `${(deal.elecUnitRate * 100).toFixed(2)}p / kWh` : '24.50p / kWh'}
+                              </span>
+                              <span style={{ fontSize: '0.75rem', color: '#059669', display: 'block', marginTop: '2px' }}>
+                                Base: {(deal.elecBaseUnitRate ? deal.elecBaseUnitRate * 100 : (deal.elecUnitRate ? deal.elecUnitRate * 100 - (deal.elecUpliftPence || 2) : 22.5)).toFixed(2)}p + Uplift: +{(deal.elecUpliftPence || 2).toFixed(1)}p
                               </span>
                             </div>
                             <div>
-                              <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Elec Standing Charge</span>
-                              <span style={{ display: 'block', fontWeight: 700, color: 'var(--brand-primary)', fontSize: '0.95rem' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Elec Standing Charge</span>
+                              <span style={{ display: 'block', fontWeight: 800, color: 'var(--brand-primary)', fontSize: '1rem' }}>
                                 {deal.elecStandingCharge ? `${(deal.elecStandingCharge * 100).toFixed(2)}p / day` : '53.00p / day'}
+                              </span>
+                              <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginTop: '2px' }}>
+                                £{deal.elecStandingCharge ? ((deal.elecStandingCharge * 365)).toFixed(2) : '193.45'} / year
                               </span>
                             </div>
                             {fuelType !== 'electricity' && (
                               <>
                                 <div>
-                                  <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Gas Unit Rate</span>
-                                  <span style={{ display: 'block', fontWeight: 700, color: 'var(--brand-primary)', fontSize: '0.95rem' }}>
+                                  <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Gas Rate Breakdown</span>
+                                  <span style={{ display: 'block', fontWeight: 800, color: 'var(--brand-primary)', fontSize: '1rem' }}>
                                     {deal.gasUnitRate ? `${(deal.gasUnitRate * 100).toFixed(2)}p / kWh` : '6.24p / kWh'}
+                                  </span>
+                                  <span style={{ fontSize: '0.75rem', color: '#059669', display: 'block', marginTop: '2px' }}>
+                                    Base: {(deal.gasBaseUnitRate ? deal.gasBaseUnitRate * 100 : (deal.gasUnitRate ? deal.gasUnitRate * 100 - (deal.gasUpliftPence || 1) : 5.24)).toFixed(2)}p + Uplift: +{(deal.gasUpliftPence || 1).toFixed(1)}p
                                   </span>
                                 </div>
                                 <div>
-                                  <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Gas Standing Charge</span>
-                                  <span style={{ display: 'block', fontWeight: 700, color: 'var(--brand-primary)', fontSize: '0.95rem' }}>
+                                  <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Gas Standing Charge</span>
+                                  <span style={{ display: 'block', fontWeight: 800, color: 'var(--brand-primary)', fontSize: '1rem' }}>
                                     {deal.gasStandingCharge ? `${(deal.gasStandingCharge * 100).toFixed(2)}p / day` : '31.40p / day'}
+                                  </span>
+                                  <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginTop: '2px' }}>
+                                    £{deal.gasStandingCharge ? ((deal.gasStandingCharge * 365)).toFixed(2) : '114.61'} / year
                                   </span>
                                 </div>
                               </>
@@ -1520,14 +1704,19 @@ function EnergyJourney() {
         {/* ========================================================================= */}
         {switchModalDeal && (
           <div className="modal-overlay" onClick={() => setSwitchModalDeal(null)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
-                  Confirm Switch to {switchModalDeal.supplierName}
-                </h3>
+            <div className="modal-content" style={{ maxWidth: '640px', maxHeight: '92vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '4px' }}>
+                    Confirm Switch to {switchModalDeal.supplierName}
+                  </h3>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                    Regulated Energy Supply Contract & Letter of Authority (LOA)
+                  </span>
+                </div>
                 <button 
                   onClick={() => setSwitchModalDeal(null)} 
-                  style={{ color: '#94a3b8', padding: '4px' }}
+                  style={{ color: '#94a3b8', padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer' }}
                 >
                   <X size={24} />
                 </button>
@@ -1535,33 +1724,36 @@ function EnergyJourney() {
 
               {!switchSuccess ? (
                 <form onSubmit={handleConfirmSwitch}>
-                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', padding: '18px', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontWeight: 700, color: '#166534' }}>{switchModalDeal.planName}</span>
-                      <span style={{ fontWeight: 800, color: '#166534', fontSize: '1.1rem' }}>£{switchModalDeal.costMonthly}/mo</span>
+                  {/* Selected Plan Summary Banner */}
+                  <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '14px', padding: '16px', marginBottom: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontWeight: 800, color: '#166534', fontSize: '1.05rem' }}>{switchModalDeal.planName}</span>
+                      <span style={{ fontWeight: 900, color: '#166534', fontSize: '1.15rem' }}>£{switchModalDeal.costMonthly}/mo</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#15803d' }}>
-                      <span>Estimated Annual Saving:</span>
-                      <span style={{ fontWeight: 700 }}>Save £{switchModalDeal.savingAnnual}/year</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#15803d', flexWrap: 'wrap', gap: '8px' }}>
+                      <span>Estimated Annual Savings: <strong>Save £{switchModalDeal.savingAnnual}/year</strong></span>
+                      <span>Contract Term: <strong>{switchModalDeal.contractLength || 12}M Fixed</strong></span>
                     </div>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Supply Address</label>
+                  {/* Supply Address */}
+                  <div className="form-group" style={{ marginBottom: '14px' }}>
+                    <label className="form-label" style={{ fontSize: '0.85rem' }}>Supply Address</label>
                     <input 
                       type="text" 
                       className="form-control" 
                       value={`${selectedAddress}, ${postcode}`} 
                       readOnly 
-                      style={{ background: '#f8fafc' }}
+                      style={{ background: '#f8fafc', fontSize: '0.9rem' }}
                     />
                   </div>
 
+                  {/* Business or Residential Details */}
                   {customerType === 'business' ? (
                     <>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
-                        <div className="form-group">
-                          <label className="form-label">Trading / Business Name *</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.85rem' }}>Trading / Business Name *</label>
                           <input 
                             type="text" 
                             className="form-control" 
@@ -1570,8 +1762,8 @@ function EnergyJourney() {
                             required 
                           />
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Company Number (CRN)</label>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.85rem' }}>Company Number (CRN)</label>
                           <input 
                             type="text" 
                             className="form-control" 
@@ -1581,19 +1773,23 @@ function EnergyJourney() {
                           />
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                        <div className="form-group">
-                          <label className="form-label">Authorized Signatory Name *</label>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.85rem' }}>Authorized Signatory Name *</label>
                           <input 
                             type="text" 
                             className="form-control" 
                             value={signatoryName} 
-                            onChange={(e) => setSignatoryName(e.target.value)} 
+                            onChange={(e) => {
+                              setSignatoryName(e.target.value);
+                              if (signatureMode === 'type') setTypedSignature(e.target.value);
+                            }} 
                             required 
                           />
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Signatory Role / Position *</label>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.85rem' }}>Signatory Role / Position *</label>
                           <input 
                             type="text" 
                             className="form-control" 
@@ -1605,34 +1801,293 @@ function EnergyJourney() {
                       </div>
                     </>
                   ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                      <div className="form-group">
-                        <label className="form-label">First Name</label>
-                        <input type="text" className="form-control" defaultValue="Salman" required />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Signatory First Name *</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          defaultValue="Malik" 
+                          required 
+                          onChange={(e) => {
+                            const fullName = `${e.target.value} Khan`;
+                            setSignatoryName(fullName);
+                            if (signatureMode === 'type') setTypedSignature(fullName);
+                          }}
+                        />
                       </div>
-                      <div className="form-group">
-                        <label className="form-label">Last Name</label>
-                        <input type="text" className="form-control" defaultValue="Khan" required />
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Signatory Last Name *</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          defaultValue="Salman" 
+                          required 
+                          onChange={(e) => {
+                            const fullName = `Malik ${e.target.value}`;
+                            setSignatoryName(fullName);
+                            if (signatureMode === 'type') setTypedSignature(fullName);
+                          }}
+                        />
                       </div>
                     </div>
                   )}
 
-                  <div className="form-group">
-                    <label className="form-label">Email Address for Switch Updates</label>
-                    <input type="email" className="form-control" defaultValue="salman@example.com" required />
-                  </div>
-
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                      <CreditCard size={20} style={{ color: '#00b050' }} />
-                      <span style={{ fontWeight: 700, color: 'var(--brand-primary)', fontSize: '0.95rem' }}>Direct Debit Guarantee</span>
+                  {/* Mandatory Customer Email & Phone */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>
+                        Customer Email (for LOA & Contract) *
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <Mail size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: '#94a3b8' }} />
+                        <input 
+                          type="email" 
+                          className="form-control" 
+                          style={{ paddingLeft: '36px' }}
+                          value={switchEmail} 
+                          onChange={(e) => setSwitchEmail(e.target.value)} 
+                          placeholder="director@company.co.uk"
+                          required 
+                        />
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '3px', display: 'block' }}>
+                        Signed contract package & LOA will be sent to this email.
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.825rem', color: '#64748b', lineHeight: '1.4' }}>
-                      You are protected by the UK Direct Debit Guarantee. No payments will be taken until your new energy supply goes live.
-                    </p>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Contact Phone *</label>
+                      <div style={{ position: 'relative' }}>
+                        <Phone size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: '#94a3b8' }} />
+                        <input 
+                          type="tel" 
+                          className="form-control" 
+                          style={{ paddingLeft: '36px' }}
+                          value={switchPhone} 
+                          onChange={(e) => setSwitchPhone(e.target.value)} 
+                          placeholder="+44 20 ..." 
+                          required 
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  {/* LETTER OF AUTHORITY (LOA) & POLICY ACCORDION */}
+                  <div className="policy-accordion">
+                    {/* Item 1: Letter of Authority (LOA) */}
+                    <div 
+                      className="policy-accordion-header"
+                      onClick={() => setPolicyAccordionOpen(policyAccordionOpen === 'loa' ? null : 'loa')}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileText size={16} style={{ color: '#00b050' }} />
+                        Letter of Authority (LOA) Terms
+                      </span>
+                      {policyAccordionOpen === 'loa' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </div>
+                    {policyAccordionOpen === 'loa' && (
+                      <div className="policy-accordion-body">
+                        <p style={{ margin: '0 0 8px' }}>
+                          <strong>LETTER OF AUTHORITY (LOA) DECLARATION:</strong><br />
+                          I/We hereby grant full authorization to <strong>NexGen Power Solutions Ltd</strong> to act as our exclusive Third Party Intermediary (TPI) to:
+                        </p>
+                        <ul style={{ margin: '0 0 8px', paddingLeft: '18px' }}>
+                          <li>Request consumption history, half-hourly data, and technical meter details (MPAN / MPRN) from our current suppliers and distribution networks.</li>
+                          <li>Issue contractual termination and renewal notices to our incumbent utility suppliers.</li>
+                          <li>Negotiate, finalize, and execute energy supply contracts with <strong>{switchModalDeal.supplierName}</strong> on our behalf.</li>
+                        </ul>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                          This authority remains valid for 12 months from the date of electronic signature unless revoked in writing.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Item 2: Ofgem TPI Broker Fee Transparency */}
+                    <div 
+                      className="policy-accordion-header"
+                      onClick={() => setPolicyAccordionOpen(policyAccordionOpen === 'tpi' ? null : 'tpi')}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ShieldCheck size={16} style={{ color: '#2563eb' }} />
+                        Ofgem TPI Broker Fee Disclosure
+                      </span>
+                      {policyAccordionOpen === 'tpi' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </div>
+                    {policyAccordionOpen === 'tpi' && (
+                      <div className="policy-accordion-body">
+                        <p style={{ margin: '0 0 6px' }}>
+                          In compliance with Ofgem supply licence regulations, our broker intermediary fee is built directly into the energy supplier unit rate according to our transparent volume schedule:
+                        </p>
+                        <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', margin: '6px 0', fontSize: '0.76rem' }}>
+                          • Electricity Volume Uplift: <strong>{comparisonResults?.results?.volumeTier?.electricity?.ratePence || comparisonResults?.results?.volumeTier?.elec?.ratePence || 2}p / kWh</strong><br />
+                          {fuelType !== 'electricity' && (
+                            <>• Gas Volume Uplift: <strong>{comparisonResults?.results?.volumeTier?.gas?.ratePence || 1}p / kWh</strong><br /></>
+                          )}
+                          • Estimated Annual Broker Commission: <strong>£{(comparisonResults?.results?.volumeTier?.totalBrokerFeeAnnual || comparisonResults?.results?.volumeTier?.totalAnnualBrokerFee)?.toLocaleString() || '1,350'} / year</strong>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.74rem', color: '#64748b' }}>
+                          This commission is paid directly to NexGen Power Solutions by the chosen energy supplier over the duration of your contract. No separate broker invoice will be issued.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Item 3: Direct Debit & Cooling Off */}
+                    <div 
+                      className="policy-accordion-header"
+                      onClick={() => setPolicyAccordionOpen(policyAccordionOpen === 'dd' ? null : 'dd')}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CreditCard size={16} style={{ color: '#d97706' }} />
+                        Direct Debit Guarantee & Cooling-Off Rights
+                      </span>
+                      {policyAccordionOpen === 'dd' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </div>
+                    {policyAccordionOpen === 'dd' && (
+                      <div className="policy-accordion-body">
+                        <p style={{ margin: '0 0 6px' }}>
+                          <strong>Direct Debit Guarantee:</strong> This Guarantee is offered by all banks and building societies that accept instructions to pay Direct Debits. Payments will only commence once your supply switch is fully registered by {switchModalDeal.supplierName}.
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.74rem', color: '#64748b' }}>
+                          {customerType === 'business'
+                            ? 'Commercial Contract Terms: Commercial contracts become legally binding upon electronic signature execution. Statutory 14-day domestic cooling-off does not apply to non-domestic energy contracts.'
+                            : 'Domestic Cooling-Off: As a residential consumer, you have a statutory 14-day cooling-off period from contract confirmation.'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mandatory Regulatory Checkboxes */}
+                  <div style={{ marginBottom: '18px' }}>
+                    <label className="policy-checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        checked={loaAgreed} 
+                        onChange={(e) => setLoaAgreed(e.target.checked)} 
+                        required 
+                      />
+                      <span>
+                        I authorize NexGen Power Solutions to act on my behalf under the <strong>Letter of Authority (LOA)</strong> to complete this switch.
+                      </span>
+                    </label>
+
+                    <label className="policy-checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        checked={termsAgreed} 
+                        onChange={(e) => setTermsAgreed(e.target.checked)} 
+                        required 
+                      />
+                      <span>
+                        I accept the <strong>{switchModalDeal.supplierName} supply terms</strong> and confirm I have authority to enter into this contract.
+                      </span>
+                    </label>
+
+                    <label className="policy-checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        checked={directDebitAgreed} 
+                        onChange={(e) => setDirectDebitAgreed(e.target.checked)} 
+                        required 
+                      />
+                      <span>
+                        I acknowledge the <strong>Direct Debit Guarantee</strong> and transparent <strong>Ofgem TPI commission structure</strong>.
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* INTERACTIVE DIGITAL SIGNATURE PAD */}
+                  <div style={{ marginBottom: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label className="form-label" style={{ marginBottom: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <PenTool size={16} style={{ color: '#00b050' }} />
+                        Customer Electronic Signature *
+                      </label>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Sign or Type your legal name</span>
+                    </div>
+
+                    {/* Mode Tabs */}
+                    <div className="signature-tab-group">
+                      <button
+                        type="button"
+                        className={`signature-tab-btn ${signatureMode === 'draw' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSignatureMode('draw');
+                          setTimeout(() => {
+                            const canvas = canvasRef.current;
+                            if (canvas) {
+                              canvas.width = canvas.offsetWidth;
+                              canvas.height = canvas.offsetHeight;
+                            }
+                          }, 50);
+                        }}
+                      >
+                        <PenTool size={14} /> Draw Signature
+                      </button>
+                      <button
+                        type="button"
+                        className={`signature-tab-btn ${signatureMode === 'type' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSignatureMode('type');
+                          if (!typedSignature) setTypedSignature(signatoryName || 'Malik Salman');
+                        }}
+                      >
+                        <Type size={14} /> Type to Sign
+                      </button>
+                    </div>
+
+                    {/* Signature Area */}
+                    {signatureMode === 'draw' ? (
+                      <div className="signature-pad-wrapper">
+                        <canvas
+                          ref={canvasRef}
+                          className="signature-canvas"
+                          onMouseDown={startDrawing}
+                          onMouseMove={draw}
+                          onMouseUp={stopDrawing}
+                          onMouseLeave={stopDrawing}
+                          onTouchStart={startDrawing}
+                          onTouchMove={draw}
+                          onTouchEnd={stopDrawing}
+                        />
+                        <div className="signature-guide-line" />
+                        <span className="signature-guide-text">Sign on the line above</span>
+                        <button
+                          type="button"
+                          className="signature-clear-btn"
+                          onClick={clearCanvas}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="signature-pad-wrapper">
+                        <div style={{ padding: '12px 14px 6px' }}>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Type full legal name"
+                            value={typedSignature}
+                            onChange={(e) => setTypedSignature(e.target.value)}
+                            style={{ fontSize: '0.95rem' }}
+                          />
+                        </div>
+                        <div className="signature-typed-preview">
+                          {typedSignature || signatoryName || 'Your Signature'}
+                        </div>
+                        <div className="signature-guide-line" />
+                        <span className="signature-guide-text">Legally generated digital script</span>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: '#64748b' }}>
+                      <Lock size={12} style={{ color: '#00b050' }} />
+                      Legally binding digital signature under the UK Electronic Communications Act 2000 & eIDAS Regulation.
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                     <button 
                       type="button" 
                       onClick={() => setSwitchModalDeal(null)} 
@@ -1644,30 +2099,88 @@ function EnergyJourney() {
                       type="submit" 
                       className="btn-primary"
                       disabled={switchSubmitting}
+                      style={{ padding: '12px 28px', fontSize: '0.95rem' }}
                     >
-                      {switchSubmitting ? 'Creating Switch Contract...' : 'Confirm & Switch Now →'}
+                      {switchSubmitting ? (
+                        <>Registering Contract...</>
+                      ) : (
+                        <>Sign & Submit Energy Switch →</>
+                      )}
                     </button>
                   </div>
                 </form>
               ) : (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#dcfce7', color: '#00b050', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                    <Check size={36} strokeWidth={3} />
+                /* OFFICIAL SWITCH CONFIRMATION CERTIFICATE */
+                <div className="switch-certificate-card">
+                  <div style={{ width: '68px', height: '68px', borderRadius: '50%', background: '#dcfce7', color: '#00b050', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 14px rgba(0, 176, 80, 0.2)' }}>
+                    <CheckCircle2 size={40} strokeWidth={2.5} />
                   </div>
-                  <h4 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '8px' }}>
-                    Switch Successfully Initiated!
+                  
+                  <span style={{ display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                    Official Energy Supply Certificate
+                  </span>
+
+                  <h4 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '6px' }}>
+                    Switch Successfully Executed!
                   </h4>
-                  <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '16px' }}>
-                    Your contract has been registered on the Medusa Energy Platform.
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '480px', margin: '0 auto 18px' }}>
+                    Your new energy contract with <strong>{switchModalDeal.supplierName}</strong> has been created and registered on the Medusa Energy Platform.
                   </p>
-                  <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '12px', display: 'inline-block', marginBottom: '24px', fontSize: '0.9rem' }}>
-                    <strong>Contract Reference:</strong> {switchSuccess.contractId || 'JF-MEDUSA-84920'}
+
+                  {/* Contract Details Pill */}
+                  <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '20px', textAlign: 'left' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem' }}>
+                      <div>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Contract Reference:</span>
+                        <strong style={{ color: 'var(--brand-primary)', fontSize: '0.95rem' }}>{switchSuccess.contractId || 'NXG-CONT-862658'}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Selected Supplier:</span>
+                        <strong style={{ color: 'var(--brand-primary)' }}>{switchModalDeal.supplierName}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Tariff Plan:</span>
+                        <strong style={{ color: 'var(--brand-primary)' }}>{switchModalDeal.planName}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Monthly Payment:</span>
+                        <strong style={{ color: '#166534' }}>£{switchModalDeal.costMonthly} / month</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Authorized Signatory:</span>
+                        <strong style={{ color: 'var(--brand-primary)' }}>{customerType === 'business' ? signatoryName : 'Malik Salman'}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Execution Timestamp:</span>
+                        <strong style={{ color: '#64748b' }}>{new Date().toLocaleDateString('en-GB')}</strong>
+                      </div>
+                    </div>
                   </div>
-                  <div>
+
+                  {/* Email Confirmation Dispatch Notice */}
+                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '14px', marginBottom: '22px', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left' }}>
+                    <Mail size={22} style={{ color: '#2563eb', flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.825rem', color: '#1e40af' }}>
+                      <strong>Email Confirmation Sent:</strong><br />
+                      A signed copy of your supply contract, Letter of Authority (LOA), and Direct Debit schedule has been dispatched to <strong>{switchEmail}</strong>.
+                    </div>
+                  </div>
+
+                  {/* Download PDF & Dashboard Actions */}
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <a 
+                      href={`${API_BASE}/energy/jellyfish/contract/${switchSuccess.contractId || 'NXG-CONT-862658'}/document`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 20px', textDecoration: 'none' }}
+                    >
+                      <Download size={16} /> Download Signed Contract & LOA (PDF)
+                    </a>
                     <button 
                       onClick={() => router.push('/dashboard')} 
                       className="btn-primary"
-                      style={{ padding: '12px 28px' }}
+                      style={{ padding: '12px 26px' }}
                     >
                       Go to My Dashboard
                     </button>

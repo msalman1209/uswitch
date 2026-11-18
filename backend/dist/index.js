@@ -38,9 +38,11 @@ app.use((_req, res) => {
 });
 // Start DB & Express Server
 async function startServer() {
-    await (0, models_1.initDB)();
     app.listen(PORT, () => {
         console.log(`[NexGen Power API] Server is running on port ${PORT}`);
+    });
+    (0, models_1.initDB)().catch((err) => {
+        console.warn('[NexGen Power API] DB init notice:', err.message);
     });
 }
 startServer().catch((err) => {

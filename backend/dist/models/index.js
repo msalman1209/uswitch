@@ -64,13 +64,16 @@ async function ensureDatabaseExists() {
 }
 async function initDB() {
     try {
-        // 1. Ensure the PostgreSQL database exists
-        await ensureDatabaseExists();
+        const dbHost = process.env.DB_HOST || 'localhost';
+        // 1. Ensure the PostgreSQL database exists (for local Postgres instances)
+        if (dbHost === 'localhost' || dbHost === '127.0.0.1') {
+            await ensureDatabaseExists();
+        }
         // 2. Authenticate Sequelize
         await db_1.default.authenticate();
         console.log('Database connection has been established successfully.');
         // 3. Sync models
-        await db_1.default.sync({ alter: true });
+        await db_1.default.sync();
         console.log('Database schemas synchronized successfully.');
     }
     catch (error) {
