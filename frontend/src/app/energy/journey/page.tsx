@@ -71,15 +71,17 @@ function EnergyJourney() {
   const [manualFlat, setManualFlat] = useState<string>('');
   const [manualStreet, setManualStreet] = useState<string>('');
 
-  // Business Details State
-  const [businessName, setBusinessName] = useState(initialType === 'business' ? 'NexGen Enterprises Ltd' : '');
+  // Business Details State (starts empty - populated from saved profile or user input)
+  const [businessName, setBusinessName] = useState('');
   const [businessType, setBusinessType] = useState<'limited' | 'sole_trader' | 'partnership' | 'charity'>('limited');
   const [companyNumber, setCompanyNumber] = useState('');
-  const [isVatRegistered, setIsVatRegistered] = useState(true);
+  const [isVatRegistered, setIsVatRegistered] = useState(false);
   const [vatNumber, setVatNumber] = useState('');
   const [businessSector, setBusinessSector] = useState('Retail & Shops');
-  const [signatoryName, setSignatoryName] = useState('Malik Salman');
-  const [signatoryRole, setSignatoryRole] = useState('Managing Director');
+  const [signatoryName, setSignatoryName] = useState('');
+  const [signatoryRole, setSignatoryRole] = useState('');
+  const [resFirstName, setResFirstName] = useState('');
+  const [resLastName, setResLastName] = useState('');
   const [contractRenewal, setContractRenewal] = useState('1to3months');
 
   const [fuelType, setFuelType] = useState<'both' | 'electricity' | 'gas'>(initialFuel);
@@ -104,13 +106,13 @@ function EnergyJourney() {
   const [switchSubmitting, setSwitchSubmitting] = useState(false);
   const [switchSuccess, setSwitchSuccess] = useState<any | null>(null);
 
-  // Email & Contact details for Switch & LOA dispatch
+  // Email & Contact details for Switch & LOA dispatch (starts empty - populated from saved profile or user input)
   const [switchEmail, setSwitchEmail] = useState('');
-  const [switchPhone, setSwitchPhone] = useState('+44 20 7946 0912');
+  const [switchPhone, setSwitchPhone] = useState('');
 
   // Digital Signature Pad State
   const [signatureMode, setSignatureMode] = useState<'draw' | 'type'>('draw');
-  const [typedSignature, setTypedSignature] = useState(signatoryName || 'Malik Salman');
+  const [typedSignature, setTypedSignature] = useState('');
   const [signatureData, setSignatureData] = useState<string>('');
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -121,6 +123,30 @@ function EnergyJourney() {
   const [directDebitAgreed, setDirectDebitAgreed] = useState(true);
   const [policyAccordionOpen, setPolicyAccordionOpen] = useState<'loa' | 'tpi' | 'dd' | null>(null);
 
+  // Auto-populate from logged in user if available ("pecha sa udh ker aa jyea ga")
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('nexgen_user') || localStorage.getItem('uswitch_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u.email && !switchEmail) setSwitchEmail(u.email);
+        if (u.phone && !switchPhone) setSwitchPhone(u.phone);
+        if (u.businessName && !businessName) setBusinessName(u.businessName);
+        if (u.companyNumber && !companyNumber) setCompanyNumber(u.companyNumber);
+        if (u.role && !signatoryRole) setSignatoryRole(u.role);
+        if (u.firstName && !resFirstName) setResFirstName(u.firstName);
+        if (u.lastName && !resLastName) setResLastName(u.lastName);
+        const fullName = u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim();
+        if (fullName) {
+          if (!signatoryName) setSignatoryName(fullName);
+          if (!typedSignature) setTypedSignature(fullName);
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading stored user profile:', e);
+    }
+  }, []);
+
   // Switch between Residential Home and Business Premises
   const handleToggleCustomerType = (type: 'residential' | 'business') => {
     setCustomerType(type);
@@ -128,7 +154,6 @@ function EnergyJourney() {
       const list = businessAddresses.length > 0 ? businessAddresses : addressList;
       setAddressList(list);
       if (list.length > 0) setSelectedAddress(list[0]);
-      if (!businessName) setBusinessName('NexGen Enterprises Ltd');
       setElecSupplier('British Gas Business');
       setGasSupplier('British Gas Business');
       if (usageType === 'estimate') {
@@ -351,19 +376,33 @@ function EnergyJourney() {
   const openSwitchModal = (deal: any) => {
     setSwitchModalDeal(deal);
     setSwitchSuccess(null);
-    if (!switchEmail) {
-      const stored = localStorage.getItem('nexgen_user') || localStorage.getItem('uswitch_user');
-      if (stored) {
-        try {
+    
+    // Auto-fill from localStorage if not already entered by customer
+    if (!switchEmail || !switchPhone || !signatoryName) {
+      try {
+        const stored = localStorage.getItem('nexgen_user') || localStorage.getItem('uswitch_user');
+        if (stored) {
           const u = JSON.parse(stored);
-          if (u.email) setSwitchEmail(u.email);
-        } catch (e) {}
-      }
-      if (!switchEmail) setSwitchEmail('salman.khan@nexgenenergy.co.uk');
+          if (u.email && !switchEmail) setSwitchEmail(u.email);
+          if (u.phone && !switchPhone) setSwitchPhone(u.phone);
+          if (u.businessName && !businessName) setBusinessName(u.businessName);
+          if (u.companyNumber && !companyNumber) setCompanyNumber(u.companyNumber);
+          if (u.role && !signatoryRole) setSignatoryRole(u.role);
+          if (u.firstName && !resFirstName) setResFirstName(u.firstName);
+          if (u.lastName && !resLastName) setResLastName(u.lastName);
+          const fullName = u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim();
+          if (fullName && !signatoryName) {
+            setSignatoryName(fullName);
+            setTypedSignature(fullName);
+          }
+        }
+      } catch (e) {}
     }
-    if (!typedSignature) {
-      setTypedSignature(signatoryName || 'Malik Salman');
+
+    if (signatoryName && !typedSignature) {
+      setTypedSignature(signatoryName);
     }
+
     setTimeout(() => {
       const canvas = canvasRef.current;
       if (canvas) {
@@ -378,19 +417,40 @@ function EnergyJourney() {
     e.preventDefault();
     if (!switchModalDeal) return;
 
-    if (!switchEmail || !switchEmail.includes('@')) {
-      alert('Please enter a valid email address to receive your contract and Letter of Authority (LOA).');
+    const effectiveSignatory = customerType === 'business' 
+      ? signatoryName.trim() 
+      : `${resFirstName.trim()} ${resLastName.trim()}`.trim();
+
+    if (customerType === 'business' && !businessName.trim()) {
+      alert('Please enter your Trading / Business Name.');
       return;
     }
+
+    if (!effectiveSignatory) {
+      alert(customerType === 'business' 
+        ? 'Please enter Authorized Signatory Name.' 
+        : 'Please enter your First Name and Last Name.');
+      return;
+    }
+
+    if (!switchEmail || !switchEmail.includes('@')) {
+      alert('Please enter a valid customer email address to receive your supply contract & Letter of Authority (LOA).');
+      return;
+    }
+
+    if (!switchPhone || switchPhone.trim().length < 6) {
+      alert('Please enter your contact phone number.');
+      return;
+    }
+
     if (!loaAgreed || !termsAgreed || !directDebitAgreed) {
       alert('Please check all regulatory compliance declarations (Letter of Authority, Supply Terms, and Direct Debit Guarantee) to proceed.');
       return;
     }
 
-    const currentSignatory = customerType === 'business' ? (signatoryName || 'Malik Salman') : 'Malik Salman';
     const sigPayload = signatureMode === 'draw' 
-      ? (signatureData || `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60"><text x="10" y="40" font-family="Caveat, cursive" font-size="28" fill="%230f172a">${encodeURIComponent(currentSignatory)}</text></svg>`)
-      : `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60"><text x="10" y="40" font-family="Caveat, cursive" font-size="28" fill="%231e3a8a">${encodeURIComponent(typedSignature || currentSignatory)}</text></svg>`;
+      ? (signatureData || `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60"><text x="10" y="40" font-family="Caveat, cursive" font-size="28" fill="%230f172a">${encodeURIComponent(effectiveSignatory)}</text></svg>`)
+      : `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60"><text x="10" y="40" font-family="Caveat, cursive" font-size="28" fill="%231e3a8a">${encodeURIComponent(typedSignature || effectiveSignatory)}</text></svg>`;
 
     setSwitchSubmitting(true);
 
@@ -413,16 +473,16 @@ function EnergyJourney() {
           costAnnual: switchModalDeal.costAnnual,
           savingAnnual: switchModalDeal.savingAnnual,
           client: {
-            email: switchEmail,
-            phone: switchPhone,
+            email: switchEmail.trim(),
+            phone: switchPhone.trim(),
             address: selectedAddress,
             postcode,
             isBusiness: customerType === 'business',
-            businessName: customerType === 'business' ? businessName : undefined,
+            businessName: customerType === 'business' ? businessName.trim() : undefined,
             businessType: customerType === 'business' ? businessType : undefined,
-            companyNumber: customerType === 'business' ? companyNumber : undefined,
-            vatNumber: customerType === 'business' && isVatRegistered ? vatNumber : undefined,
-            signatoryName: currentSignatory,
+            companyNumber: customerType === 'business' ? companyNumber.trim() : undefined,
+            vatNumber: customerType === 'business' && isVatRegistered ? vatNumber.trim() : undefined,
+            signatoryName: effectiveSignatory,
             signatoryRole: customerType === 'business' ? signatoryRole : 'Account Holder',
             signatureData: sigPayload,
             signatureType: signatureMode === 'draw' ? 'drawn' : 'typed',
@@ -767,7 +827,7 @@ function EnergyJourney() {
                       <input 
                         type="text" 
                         className="form-control" 
-                        placeholder="Full name (e.g. Malik Salman)"
+                        placeholder="Full name of authorized signatory"
                         value={signatoryName}
                         onChange={(e) => setSignatoryName(e.target.value)}
                       />
@@ -778,7 +838,7 @@ function EnergyJourney() {
                       <input 
                         type="text" 
                         className="form-control" 
-                        placeholder="e.g. Managing Director / Partner"
+                        placeholder="e.g. Director / Owner / Partner"
                         value={signatoryRole}
                         onChange={(e) => setSignatoryRole(e.target.value)}
                       />
@@ -1759,6 +1819,7 @@ function EnergyJourney() {
                             className="form-control" 
                             value={businessName} 
                             onChange={(e) => setBusinessName(e.target.value)} 
+                            placeholder="e.g. Acme Trading Ltd"
                             required 
                           />
                         </div>
@@ -1769,7 +1830,7 @@ function EnergyJourney() {
                             className="form-control" 
                             value={companyNumber} 
                             onChange={(e) => setCompanyNumber(e.target.value)} 
-                            placeholder="e.g. 12345678" 
+                            placeholder="e.g. 12345678 (optional)" 
                           />
                         </div>
                       </div>
@@ -1785,6 +1846,7 @@ function EnergyJourney() {
                               setSignatoryName(e.target.value);
                               if (signatureMode === 'type') setTypedSignature(e.target.value);
                             }} 
+                            placeholder="Full Legal Name"
                             required 
                           />
                         </div>
@@ -1795,6 +1857,7 @@ function EnergyJourney() {
                             className="form-control" 
                             value={signatoryRole} 
                             onChange={(e) => setSignatoryRole(e.target.value)} 
+                            placeholder="e.g. Director, Partner, Owner"
                             required 
                           />
                         </div>
@@ -1803,30 +1866,34 @@ function EnergyJourney() {
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Signatory First Name *</label>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>First Name *</label>
                         <input 
                           type="text" 
                           className="form-control" 
-                          defaultValue="Malik" 
+                          value={resFirstName}
+                          placeholder="First Name (e.g. John)"
                           required 
                           onChange={(e) => {
-                            const fullName = `${e.target.value} Khan`;
-                            setSignatoryName(fullName);
-                            if (signatureMode === 'type') setTypedSignature(fullName);
+                            setResFirstName(e.target.value);
+                            const full = `${e.target.value} ${resLastName}`.trim();
+                            setSignatoryName(full);
+                            if (signatureMode === 'type') setTypedSignature(full);
                           }}
                         />
                       </div>
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Signatory Last Name *</label>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Last Name *</label>
                         <input 
                           type="text" 
                           className="form-control" 
-                          defaultValue="Salman" 
+                          value={resLastName}
+                          placeholder="Last Name (e.g. Smith)"
                           required 
                           onChange={(e) => {
-                            const fullName = `Malik ${e.target.value}`;
-                            setSignatoryName(fullName);
-                            if (signatureMode === 'type') setTypedSignature(fullName);
+                            setResLastName(e.target.value);
+                            const full = `${resFirstName} ${e.target.value}`.trim();
+                            setSignatoryName(full);
+                            if (signatureMode === 'type') setTypedSignature(full);
                           }}
                         />
                       </div>
@@ -1847,7 +1914,7 @@ function EnergyJourney() {
                           style={{ paddingLeft: '36px' }}
                           value={switchEmail} 
                           onChange={(e) => setSwitchEmail(e.target.value)} 
-                          placeholder="director@company.co.uk"
+                          placeholder="e.g. director@company.co.uk"
                           required 
                         />
                       </div>
@@ -1866,7 +1933,7 @@ function EnergyJourney() {
                           style={{ paddingLeft: '36px' }}
                           value={switchPhone} 
                           onChange={(e) => setSwitchPhone(e.target.value)} 
-                          placeholder="+44 20 ..." 
+                          placeholder="e.g. 020 7946 0000 or 07123 456789" 
                           required 
                         />
                       </div>
@@ -2029,7 +2096,8 @@ function EnergyJourney() {
                         className={`signature-tab-btn ${signatureMode === 'type' ? 'active' : ''}`}
                         onClick={() => {
                           setSignatureMode('type');
-                          if (!typedSignature) setTypedSignature(signatoryName || 'Malik Salman');
+                          const sig = customerType === 'business' ? signatoryName : `${resFirstName} ${resLastName}`.trim();
+                          if (!typedSignature && sig) setTypedSignature(sig);
                         }}
                       >
                         <Type size={14} /> Type to Sign
@@ -2066,14 +2134,14 @@ function EnergyJourney() {
                           <input
                             type="text"
                             className="form-control"
-                            placeholder="Type full legal name"
+                            placeholder="Type full legal name to sign"
                             value={typedSignature}
                             onChange={(e) => setTypedSignature(e.target.value)}
                             style={{ fontSize: '0.95rem' }}
                           />
                         </div>
                         <div className="signature-typed-preview">
-                          {typedSignature || signatoryName || 'Your Signature'}
+                          {typedSignature || (customerType === 'business' ? signatoryName : `${resFirstName} ${resLastName}`.trim()) || 'Your Signature'}
                         </div>
                         <div className="signature-guide-line" />
                         <span className="signature-guide-text">Legally generated digital script</span>
@@ -2148,7 +2216,7 @@ function EnergyJourney() {
                       </div>
                       <div>
                         <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Authorized Signatory:</span>
-                        <strong style={{ color: 'var(--brand-primary)' }}>{customerType === 'business' ? signatoryName : 'Malik Salman'}</strong>
+                        <strong style={{ color: 'var(--brand-primary)' }}>{customerType === 'business' ? (signatoryName || 'Authorized Signatory') : (`${resFirstName} ${resLastName}`.trim() || 'Account Holder')}</strong>
                       </div>
                       <div>
                         <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem' }}>Execution Timestamp:</span>
