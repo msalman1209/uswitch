@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  Wifi, Zap, Smartphone, ShieldCheck, Landmark, Search, ArrowRight, 
+  Wifi, Zap, Smartphone, Search, ArrowRight, 
   CheckCircle2, Star, Shield, ChevronRight, Building, Home
 } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'broadband' | 'energy' | 'mobile' | 'insurance' | 'banking'>('broadband');
+  const [activeTab, setActiveTab] = useState<'broadband' | 'energy'>('broadband');
   const [postcode, setPostcode] = useState('');
   const [customerType, setCustomerType] = useState<'residential' | 'business'>('residential');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -21,18 +21,21 @@ export default function HomePage() {
     
     if (activeTab === 'broadband') {
       router.push(`/broadband/results?postcode=${encodeURIComponent(postcode)}`);
-    } else if (activeTab === 'energy') {
-      router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=both&type=${customerType}`);
-    } else if (activeTab === 'mobile') {
-      router.push(`/sim-only?postcode=${encodeURIComponent(postcode)}`);
-    } else if (activeTab === 'insurance') {
-      router.push(`/insurance?postcode=${encodeURIComponent(postcode)}`);
     } else {
-      router.push(`/banking?postcode=${encodeURIComponent(postcode)}`);
+      router.push(`/energy/journey?postcode=${encodeURIComponent(postcode.trim().toUpperCase())}&fuel=both&type=${customerType}`);
     }
   };
 
   const categories = [
+    {
+      id: 'energy',
+      title: 'Gas & Electricity',
+      desc: 'Switch energy suppliers in under 5 minutes and lock in fixed, green rates.',
+      icon: <Zap size={28} />,
+      badge: 'Fixed & Green Tariffs',
+      href: '/energy',
+      color: '#00b050'
+    },
     {
       id: 'broadband',
       title: 'Broadband & TV',
@@ -40,34 +43,16 @@ export default function HomePage() {
       icon: <Wifi size={28} />,
       badge: 'Save up to £480/yr',
       href: '/broadband',
-      color: '#00b050'
+      color: '#0284c7'
     },
     {
-      id: 'energy',
-      title: 'Gas & Electricity',
-      desc: 'Switch energy suppliers in under 5 minutes and lock in fixed rates.',
-      icon: <Zap size={28} />,
-      badge: 'Fixed & Green Tariffs',
-      href: '/energy',
-      color: '#eab308'
-    },
-    {
-      id: 'insurance',
-      title: 'Car & Home Insurance',
-      desc: 'Compare quotes from over 100 top UK insurers in one quick search.',
-      icon: <ShieldCheck size={28} />,
-      badge: 'Save up to £319',
-      href: '/insurance',
+      id: 'mobile',
+      title: 'Mobile & SIM Only',
+      desc: 'Compare SIM only deals, unlimited 5G data plans, and top UK phone networks.',
+      icon: <Smartphone size={28} />,
+      badge: 'Unlimited 5G Data',
+      href: '/sim-only',
       color: '#8b5cf6'
-    },
-    {
-      id: 'banking',
-      title: 'Cards & Personal Loans',
-      desc: 'Compare 0% balance transfer credit cards and low interest loans.',
-      icon: <Landmark size={28} />,
-      badge: 'Check Eligibility',
-      href: '/banking',
-      color: '#ec4899'
     }
   ];
 
@@ -120,13 +105,13 @@ export default function HomePage() {
             {/* Left Content */}
             <div>
               <div className="hero-badge">
-                <ShieldCheck size={16} /> Ofgem Accredited & UK's Trusted Utilities Comparison Service
+                <Shield size={16} /> Ofgem Accredited & UK's Trusted Utilities Comparison Service
               </div>
               <h1 className="hero-title">
                 Switch household bills. <span>Save hundreds.</span>
               </h1>
               <p className="hero-subtitle">
-                Join thousands of UK households who have saved money on Broadband, Energy, Mobile & Insurance with NexGen Power Solutions.
+                Join thousands of UK households who have saved money on Gas, Electricity, Broadband & Mobile with NexGen Power Solutions.
               </p>
 
               <div className="hero-trust-list">

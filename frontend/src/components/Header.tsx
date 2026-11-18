@@ -4,10 +4,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
-  Wifi, Zap, Smartphone, ShieldCheck, Landmark, ChevronDown, 
-  User, LogOut, LayoutDashboard, Flame, Sun, Tv, CreditCard, 
-  Car, Home, HeartPulse, Plane, Gauge, Sparkles, Menu, X,
-  PiggyBank, Shield, Key
+  Wifi, Zap, Smartphone, ChevronDown, 
+  User, LogOut, LayoutDashboard, Flame, Sun, Tv, 
+  Home, Gauge, Sparkles, Menu, X, Shield
 } from 'lucide-react';
 
 export default function Header() {
@@ -305,180 +304,6 @@ export default function Header() {
                 </div>
               </div>
             </div>
-
-            {/* Insurance Mega Menu */}
-            <div 
-              className="nav-item"
-              onMouseEnter={() => handleMouseEnter('insurance')}
-              onMouseLeave={handleMouseLeave}
-            >
-              <Link 
-                href="/insurance" 
-                className={`nav-link ${activeMenu === 'insurance' ? 'active-hover' : ''} ${pathname.startsWith('/insurance') ? 'active' : ''}`}
-              >
-                Insurance <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'insurance' ? 'rotate-180' : ''}`} />
-              </Link>
-              <div 
-                className={`mega-menu ${activeMenu === 'insurance' ? 'is-open' : ''}`}
-                onMouseEnter={() => handleMouseEnter('insurance')}
-                onMouseLeave={handleMouseLeave}
-              >
-                <div>
-                  <div className="mega-column-title">Motor & Vehicle</div>
-                  <div className="mega-link-list">
-                    <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><Car size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Car Insurance</span>
-                        <span className="mega-link-desc">Save up to £319</span>
-                      </div>
-                    </Link>
-                    <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><ShieldCheck size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Van Insurance</span>
-                        <span className="mega-link-desc">Compare top UK insurers</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mega-column-title">Home & Travel</div>
-                  <div className="mega-link-list">
-                    <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><Home size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Home Insurance</span>
-                        <span className="mega-link-desc">Buildings & contents</span>
-                      </div>
-                    </Link>
-                    <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><Plane size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Travel Insurance</span>
-                        <span className="mega-link-desc">Worldwide holiday cover</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mega-column-title">Life & Health</div>
-                  <div className="mega-link-list">
-                    <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><HeartPulse size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Pet & Health</span>
-                        <span className="mega-link-desc">Vet fees & medical cover</span>
-                      </div>
-                    </Link>
-                    <Link href="/insurance" className="mega-link-item">
-                      <div className="mega-icon-box"><Shield size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Life Insurance</span>
-                        <span className="mega-link-desc">Protect your family</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="mega-promo-box">
-                  <div>
-                    <div className="mega-promo-title">Quick Quote</div>
-                    <div className="mega-promo-desc">Compare 100+ insurance providers in 2 minutes.</div>
-                  </div>
-                  <Link href="/insurance" className="mega-promo-btn">Get Quotes</Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Banking Mega Menu */}
-            <div 
-              className="nav-item"
-              onMouseEnter={() => handleMouseEnter('banking')}
-              onMouseLeave={handleMouseLeave}
-            >
-              <Link 
-                href="/banking" 
-                className={`nav-link ${activeMenu === 'banking' ? 'active-hover' : ''} ${pathname.startsWith('/banking') ? 'active' : ''}`}
-              >
-                Banking <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'banking' ? 'rotate-180' : ''}`} />
-              </Link>
-              <div 
-                className={`mega-menu ${activeMenu === 'banking' ? 'is-open' : ''}`}
-                onMouseEnter={() => handleMouseEnter('banking')}
-                onMouseLeave={handleMouseLeave}
-              >
-                <div>
-                  <div className="mega-column-title">Personal Finance</div>
-                  <div className="mega-link-list">
-                    <Link href="/banking" className="mega-link-item">
-                      <div className="mega-icon-box"><CreditCard size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Credit Cards</span>
-                        <span className="mega-link-desc">0% Balance Transfer</span>
-                      </div>
-                    </Link>
-                    <Link href="/banking" className="mega-link-item">
-                      <div className="mega-icon-box"><Landmark size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Personal Loans</span>
-                        <span className="mega-link-desc">Low interest rates</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mega-column-title">Home Mortgages</div>
-                  <div className="mega-link-list">
-                    <Link href="/banking" className="mega-link-item">
-                      <div className="mega-icon-box"><Key size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">First Time Buyer</span>
-                        <span className="mega-link-desc">Low deposit mortgage rates</span>
-                      </div>
-                    </Link>
-                    <Link href="/banking" className="mega-link-item">
-                      <div className="mega-icon-box"><Home size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Remortgage Deals</span>
-                        <span className="mega-link-desc">Fixed & tracker options</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mega-column-title">Savings & Accounts</div>
-                  <div className="mega-link-list">
-                    <Link href="/banking" className="mega-link-item">
-                      <div className="mega-icon-box"><PiggyBank size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">High-Interest Savings</span>
-                        <span className="mega-link-desc">Cash ISAs & fixed bonds</span>
-                      </div>
-                    </Link>
-                    <Link href="/banking" className="mega-link-item">
-                      <div className="mega-icon-box"><CreditCard size={16} /></div>
-                      <div className="mega-link-text">
-                        <span className="mega-link-title">Current Accounts</span>
-                        <span className="mega-link-desc">Switching cash bonuses</span>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="mega-promo-box">
-                  <div>
-                    <div className="mega-promo-title">Credit Check</div>
-                    <div className="mega-promo-desc">Check your card eligibility without affecting your credit score.</div>
-                  </div>
-                  <Link href="/banking" className="mega-promo-btn">Compare Cards</Link>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right Actions */}
@@ -565,34 +390,6 @@ export default function Header() {
                     <Smartphone size={18} />
                   </div>
                   <span>Mobile & SIM</span>
-                </div>
-                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
-              </Link>
-
-              <Link 
-                href="/insurance" 
-                className={`mobile-nav-link ${pathname.startsWith('/insurance') ? 'active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <div className="mobile-nav-link-left">
-                  <div className="mobile-icon-box" style={{ color: '#8b5cf6', background: 'rgba(139,92,246,0.1)' }}>
-                    <ShieldCheck size={18} />
-                  </div>
-                  <span>Insurance</span>
-                </div>
-                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
-              </Link>
-
-              <Link 
-                href="/banking" 
-                className={`mobile-nav-link ${pathname.startsWith('/banking') ? 'active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <div className="mobile-nav-link-left">
-                  <div className="mobile-icon-box" style={{ color: '#ec4899', background: 'rgba(236,72,153,0.1)' }}>
-                    <Landmark size={18} />
-                  </div>
-                  <span>Loans & Banking</span>
                 </div>
                 <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
               </Link>

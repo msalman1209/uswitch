@@ -46,15 +46,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Finance & Insurance */}
+          {/* Column 3: Mobile */}
           <div>
-            <div className="footer-title">Finance & Insurance</div>
+            <div className="footer-title">Mobile</div>
             <ul className="footer-links">
-              <li><Link href="/insurance">Car Insurance</Link></li>
-              <li><Link href="/insurance">Home Insurance</Link></li>
-              <li><Link href="/banking">0% Credit Cards</Link></li>
-              <li><Link href="/banking">Personal Loans</Link></li>
-              <li><Link href="/banking">Mortgage Rates</Link></li>
+              <li><Link href="/sim-only">SIM Only Deals</Link></li>
+              <li><Link href="/sim-only">Unlimited Data SIMs</Link></li>
+              <li><Link href="/sim-only">5G Mobile Contracts</Link></li>
+              <li><Link href="/sim-only">Compare UK Networks</Link></li>
             </ul>
           </div>
 
@@ -62,11 +61,10 @@ export default function Footer() {
           <div>
             <div className="footer-title">Company</div>
             <ul className="footer-links">
-              <li><Link href="#">About NexGen Power Solutions</Link></li>
-              <li><Link href="#">How We Make Money</Link></li>
-              <li><Link href="#">Press & Media</Link></li>
-              <li><Link href="#">Careers</Link></li>
-              <li><Link href="#">Customer Support</Link></li>
+              <li><Link href="/energy">About NexGen Power Solutions</Link></li>
+              <li><Link href="/dashboard">Customer Support</Link></li>
+              <li><Link href="/energy">Energy Guide & Help</Link></li>
+              <li><Link href="/broadband">Broadband Guide</Link></li>
             </ul>
           </div>
         </div>
@@ -74,12 +72,12 @@ export default function Footer() {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div>
-            © {new Date().getFullYear()} NexGen Power Solutions Ltd. All rights reserved. Registered in England & Wales. Authorized and regulated by the Financial Conduct Authority (FCA). Partnered with Jellyfish Energy.
+            © {new Date().getFullYear()} NexGen Power Solutions Ltd. All rights reserved. Registered in England & Wales. Ofgem Confidence Code Accredited. Partnered with Jellyfish Energy.
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
-            <Link href="#">Privacy Policy</Link>
-            <Link href="#">Terms of Use</Link>
-            <Link href="#">Accessibility</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Use</Link>
+            <Link href="/accessibility">Accessibility</Link>
           </div>
         </div>
       </div>
