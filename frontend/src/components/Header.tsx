@@ -513,11 +513,126 @@ export default function Header() {
             )}
 
             {/* Mobile Menu Button */}
-            <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <button 
+              className="mobile-toggle" 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle Navigation Menu"
+            >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="mobile-nav-drawer">
+            <div className="mobile-nav-links">
+              <Link 
+                href="/broadband" 
+                className={`mobile-nav-link ${pathname.startsWith('/broadband') ? 'active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="mobile-nav-link-left">
+                  <div className="mobile-icon-box" style={{ color: '#00b050', background: 'rgba(0,176,80,0.1)' }}>
+                    <Wifi size={18} />
+                  </div>
+                  <span>Broadband & TV</span>
+                </div>
+                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
+              </Link>
+
+              <Link 
+                href="/energy" 
+                className={`mobile-nav-link ${pathname.startsWith('/energy') ? 'active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="mobile-nav-link-left">
+                  <div className="mobile-icon-box" style={{ color: '#eab308', background: 'rgba(234,179,8,0.1)' }}>
+                    <Zap size={18} />
+                  </div>
+                  <span>Gas & Electricity</span>
+                </div>
+                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
+              </Link>
+
+              <Link 
+                href="/sim-only" 
+                className={`mobile-nav-link ${pathname.startsWith('/sim-only') ? 'active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="mobile-nav-link-left">
+                  <div className="mobile-icon-box" style={{ color: '#06b6d4', background: 'rgba(6,182,212,0.1)' }}>
+                    <Smartphone size={18} />
+                  </div>
+                  <span>Mobile & SIM</span>
+                </div>
+                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
+              </Link>
+
+              <Link 
+                href="/insurance" 
+                className={`mobile-nav-link ${pathname.startsWith('/insurance') ? 'active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="mobile-nav-link-left">
+                  <div className="mobile-icon-box" style={{ color: '#8b5cf6', background: 'rgba(139,92,246,0.1)' }}>
+                    <ShieldCheck size={18} />
+                  </div>
+                  <span>Insurance</span>
+                </div>
+                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
+              </Link>
+
+              <Link 
+                href="/banking" 
+                className={`mobile-nav-link ${pathname.startsWith('/banking') ? 'active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="mobile-nav-link-left">
+                  <div className="mobile-icon-box" style={{ color: '#ec4899', background: 'rgba(236,72,153,0.1)' }}>
+                    <Landmark size={18} />
+                  </div>
+                  <span>Loans & Banking</span>
+                </div>
+                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
+              </Link>
+            </div>
+
+            <div className="mobile-nav-footer">
+              <Link 
+                href={user ? "/dashboard?tab=utrack" : "/login?redirect=/dashboard?tab=utrack"} 
+                className="mobile-btn-utrack"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className="btn-utrack-dot"></span>
+                Utrack Live Tracker
+              </Link>
+
+              {user ? (
+                <div className="mobile-user-row">
+                  <Link 
+                    href="/dashboard" 
+                    className="mobile-user-btn"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User size={16} /> Hi, {user.firstName}
+                  </Link>
+                  <button onClick={handleLogout} className="mobile-logout-btn">
+                    <LogOut size={16} /> Sign Out
+                  </button>
+                </div>
+              ) : (
+                <Link 
+                  href="/login" 
+                  className="mobile-btn-signin"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
     </header>
   );

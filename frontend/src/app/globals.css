@@ -515,6 +515,8 @@ h3 {
   padding: 28px;
   box-shadow: var(--shadow-mega);
   color: var(--text-main);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .calc-tab-list {
@@ -522,14 +524,14 @@ h3 {
   background: var(--bg-subtle);
   padding: 4px;
   border-radius: var(--radius-full);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   gap: 4px;
 }
 
 .calc-tab-btn {
   flex: 1;
-  padding: 10px 12px;
-  font-size: 0.85rem;
+  padding: 10px 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   border-radius: var(--radius-full);
   color: var(--text-muted);
@@ -537,7 +539,12 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: 44px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
   transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
 }
 .calc-tab-btn.active {
   background: var(--brand-accent);
@@ -545,54 +552,112 @@ h3 {
   box-shadow: 0 4px 10px var(--brand-accent-glow);
 }
 
+/* Home vs Business Subtabs */
+.calc-subtab-list {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: #f8fafc;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+.calc-subtab-btn {
+  flex: 1;
+  padding: 9px 12px;
+  min-height: 42px;
+  border-radius: 9px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: #64748b;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.calc-subtab-btn.active-residential {
+  background: #0a192f;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(10, 25, 47, 0.2);
+}
+.calc-subtab-btn.active-business {
+  background: #00b050;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 176, 80, 0.25);
+}
+
 .postcode-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+}
+.postcode-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+  display: block;
+  line-height: 1.35;
 }
 .postcode-input-group {
   position: relative;
+  width: 100%;
 }
 .postcode-input {
   width: 100%;
-  padding: 16px 16px 16px 48px;
+  padding: 14px 16px 14px 44px;
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
   transition: var(--transition);
+  box-sizing: border-box;
 }
 .postcode-input:focus {
   outline: none;
   border-color: var(--brand-accent);
-  box-shadow: 0 0 0 4px var(--brand-accent-glow);
+  box-shadow: 0 0 0 3px var(--brand-accent-glow);
 }
 .postcode-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-muted);
+  pointer-events: none;
 }
 
 .btn-hero-action {
   width: 100%;
-  padding: 16px;
+  padding: 14px 18px;
+  min-height: 48px;
   background: var(--brand-accent);
   color: white;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   box-shadow: 0 4px 14px var(--brand-accent-glow);
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn-hero-action:hover {
   background: var(--brand-accent-hover);
   transform: translateY(-2px);
+}
+.btn-hero-action:active {
+  transform: translateY(0);
 }
 
 .calc-guarantee {
@@ -600,9 +665,26 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.775rem;
   color: var(--text-muted);
-  margin-top: 12px;
+  margin-top: 10px;
+  text-align: center;
+  flex-wrap: wrap;
+}
+
+/* Trust features on hero */
+.hero-trust-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.hero-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Category Grid Section */
@@ -853,13 +935,153 @@ h3 {
   font-size: 0.8rem;
 }
 
+/* Mobile Navigation Drawer */
+.mobile-nav-drawer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+  padding: 16px 20px 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideDownMobile 0.2s ease-out;
+}
+
+@keyframes slideDownMobile {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: var(--brand-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.mobile-nav-link:hover, .mobile-nav-link.active {
+  background: var(--bg-subtle);
+  color: var(--brand-accent);
+}
+.mobile-nav-link-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-nav-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.mobile-btn-utrack {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  color: var(--brand-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.mobile-btn-signin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: var(--brand-accent);
+  color: #ffffff;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.mobile-user-row {
+  display: flex;
+  gap: 10px;
+}
+.mobile-user-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+.mobile-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 10px;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 /* Mobile Responsive Adjustments */
 @media (max-width: 992px) {
   .nav-menu {
     display: none;
   }
   .mobile-toggle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: var(--brand-primary);
   }
   .mega-menu {
     display: none !important;
@@ -883,6 +1105,92 @@ h3 {
   }
   .footer-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-wrapper {
+    padding: 36px 0 48px;
+  }
+  .hero-title {
+    font-size: 2.25rem;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .category-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .section-padding {
+    padding: 48px 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+  .top-bar-inner {
+    justify-content: center;
+    font-size: 0.75rem;
+  }
+  .top-bar-inner > div:last-child {
+    display: none !important;
+  }
+  .hero-calc-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  .hero-trust-list {
+    gap: 10px 14px;
+    font-size: 0.8rem;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.85rem;
+    line-height: 1.2;
+  }
+  .hero-badge {
+    font-size: 0.775rem;
+    padding: 5px 10px;
+  }
+  .calc-tab-btn {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+  .calc-subtab-btn {
+    padding: 8px 6px;
+    font-size: 0.775rem;
+    gap: 4px;
+  }
+  .postcode-label {
+    font-size: 0.825rem;
+  }
+  .postcode-input {
+    font-size: 0.95rem;
+    padding: 12px 14px 12px 40px;
+  }
+  .postcode-icon {
+    left: 12px;
+  }
+  .btn-hero-action {
+    font-size: 0.95rem;
+    padding: 12px 14px;
+  }
+  .category-grid {
+    grid-template-columns: 1fr;
   }
 }
 

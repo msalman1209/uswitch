@@ -129,10 +129,10 @@ export default function HomePage() {
                 Join thousands of UK households who have saved money on Broadband, Energy, Mobile & Insurance with NexGen Power Solutions.
               </p>
 
-              <div style={{ display: 'flex', gap: '24px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={18} color="#00b050" /> Fast & Free Switch</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={18} color="#00b050" /> No hidden fees</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={18} color="#00b050" /> Official Guarantee</span>
+              <div className="hero-trust-list">
+                <span className="hero-trust-item"><CheckCircle2 size={18} color="#00b050" /> Fast & Free Switch</span>
+                <span className="hero-trust-item"><CheckCircle2 size={18} color="#00b050" /> No hidden fees</span>
+                <span className="hero-trust-item"><CheckCircle2 size={18} color="#00b050" /> Official Guarantee</span>
               </div>
             </div>
 
@@ -140,45 +140,35 @@ export default function HomePage() {
             <div className="hero-calc-card">
               <div className="calc-tab-list">
                 <button 
+                  type="button"
                   className={`calc-tab-btn ${activeTab === 'broadband' ? 'active' : ''}`}
                   onClick={() => setActiveTab('broadband')}
                 >
-                  <Wifi size={14} /> Broadband
+                  <Wifi size={15} /> Broadband
                 </button>
                 <button 
+                  type="button"
                   className={`calc-tab-btn ${activeTab === 'energy' ? 'active' : ''}`}
                   onClick={() => setActiveTab('energy')}
                 >
-                  <Zap size={14} /> Energy
+                  <Zap size={15} /> Energy
                 </button>
               </div>
 
               {/* Energy Customer Type (Home vs Business) */}
               {activeTab === 'energy' && (
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <div className="calc-subtab-list">
                   <button
                     type="button"
                     onClick={() => setCustomerType('residential')}
-                    style={{
-                      flex: 1, padding: '7px 12px', borderRadius: '10px', fontSize: '0.825rem', fontWeight: 700,
-                      background: customerType === 'residential' ? '#0a192f' : '#f1f5f9',
-                      color: customerType === 'residential' ? '#ffffff' : '#64748b',
-                      border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                      transition: 'all 0.2s ease'
-                    }}
+                    className={`calc-subtab-btn ${customerType === 'residential' ? 'active-residential' : ''}`}
                   >
                     <Home size={14} /> Home Energy
                   </button>
                   <button
                     type="button"
                     onClick={() => setCustomerType('business')}
-                    style={{
-                      flex: 1, padding: '7px 12px', borderRadius: '10px', fontSize: '0.825rem', fontWeight: 700,
-                      background: customerType === 'business' ? '#00b050' : '#f1f5f9',
-                      color: customerType === 'business' ? '#ffffff' : '#64748b',
-                      border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                      transition: 'all 0.2s ease'
-                    }}
+                    className={`calc-subtab-btn ${customerType === 'business' ? 'active-business' : ''}`}
                   >
                     <Building size={14} /> Business Energy
                   </button>
@@ -186,7 +176,7 @@ export default function HomePage() {
               )}
 
               <form onSubmit={handlePostcodeSubmit} className="postcode-form">
-                <label style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--brand-primary)' }}>
+                <label className="postcode-label">
                   Enter your UK Postcode to compare deals in your area
                 </label>
                 <div className="postcode-input-group">
