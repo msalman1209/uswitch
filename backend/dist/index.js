@@ -45,7 +45,16 @@ async function startServer() {
         console.warn('[NexGen Power API] DB init notice:', err.message);
     });
 }
-startServer().catch((err) => {
-    console.error('[NexGen Power API] Server failed to start:', err);
-});
+// Only start standalone server on a port if NOT in Serverless (Vercel / Lambda)
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    startServer().catch((err) => {
+        console.error('[NexGen Power API] Server failed to start:', err);
+    });
+}
+else {
+    // In serverless environment, initialize database non-blocking
+    (0, models_1.initDB)().catch((err) => {
+        console.warn('[NexGen Power API] Serverless DB init notice:', err.message);
+    });
+}
 exports.default = app;
