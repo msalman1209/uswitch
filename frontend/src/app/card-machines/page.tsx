@@ -701,3 +701,4 @@ export default function CardMachinesPage() {
     </div>
   );
 }
+
