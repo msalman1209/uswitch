@@ -46,14 +46,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Mobile */}
+          {/* Column 3: Card Machines */}
           <div>
-            <div className="footer-title">Mobile</div>
+            <div className="footer-title">Card Machines</div>
             <ul className="footer-links">
-              <li><Link href="/sim-only">SIM Only Deals</Link></li>
-              <li><Link href="/sim-only">Unlimited Data SIMs</Link></li>
-              <li><Link href="/sim-only">5G Mobile Contracts</Link></li>
-              <li><Link href="/sim-only">Compare UK Networks</Link></li>
+              <li><Link href="/card-machines">Countertop Card Terminals</Link></li>
+              <li><Link href="/card-machines">Portable & Wi-Fi Machines</Link></li>
+              <li><Link href="/card-machines">Mobile 4G Card Readers</Link></li>
+              <li><Link href="/card-machines">Virtual POS & Phone Payments</Link></li>
+              <li><Link href="/card-machines">Compare Merchant Fees</Link></li>
             </ul>
           </div>
 

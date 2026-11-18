@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
-  Wifi, Zap, Smartphone, ChevronDown, 
+  Wifi, Zap, CreditCard, ChevronDown, 
   User, LogOut, LayoutDashboard, Flame, Sun, Tv, 
   Home, Gauge, Sparkles, Menu, X, Shield
 } from 'lucide-react';
@@ -266,41 +266,69 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile & SIM Mega Menu */}
+            {/* Card Machines Mega Menu */}
             <div 
               className="nav-item"
-              onMouseEnter={() => handleMouseEnter('mobile')}
+              onMouseEnter={() => handleMouseEnter('card-machines')}
               onMouseLeave={handleMouseLeave}
             >
               <Link 
-                href="/mobile-phones" 
-                className={`nav-link ${activeMenu === 'mobile' ? 'active-hover' : ''} ${pathname.startsWith('/mobile-phones') || pathname.startsWith('/sim-only') ? 'active' : ''}`}
+                href="/card-machines" 
+                className={`nav-link ${activeMenu === 'card-machines' ? 'active-hover' : ''} ${pathname.startsWith('/card-machines') ? 'active' : ''}`}
               >
-                Mobile & SIM <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'mobile' ? 'rotate-180' : ''}`} />
+                Card Machines <ChevronDown size={14} className={`chevron-icon ${activeMenu === 'card-machines' ? 'rotate-180' : ''}`} />
               </Link>
               <div 
-                className={`mega-menu ${activeMenu === 'mobile' ? 'is-open' : ''}`}
-                onMouseEnter={() => handleMouseEnter('mobile')}
+                className={`mega-menu ${activeMenu === 'card-machines' ? 'is-open' : ''}`}
+                onMouseEnter={() => handleMouseEnter('card-machines')}
                 onMouseLeave={handleMouseLeave}
               >
                 <div>
-                  <div className="mega-column-title">Mobile Services</div>
+                  <div className="mega-column-title">Card Terminals</div>
                   <div className="mega-link-list">
-                    <Link href="/sim-only" className="mega-link-item">
-                      <div className="mega-icon-box"><Smartphone size={16} /></div>
+                    <Link href="/card-machines" className="mega-link-item">
+                      <div className="mega-icon-box"><CreditCard size={16} /></div>
                       <div className="mega-link-text">
-                        <span className="mega-link-title">SIM Only Deals</span>
-                        <span className="mega-link-desc">Unlimited data from £6/mo</span>
+                        <span className="mega-link-title">Countertop Terminals</span>
+                        <span className="mega-link-desc">Fast, reliable retail checkout</span>
                       </div>
                     </Link>
-                    <Link href="/mobile-phones" className="mega-link-item">
-                      <div className="mega-icon-box"><Smartphone size={16} /></div>
+                    <Link href="/card-machines" className="mega-link-item">
+                      <div className="mega-icon-box"><CreditCard size={16} /></div>
                       <div className="mega-link-text">
-                        <span className="mega-link-title">Mobile Phone Contracts</span>
-                        <span className="mega-link-desc">iPhone, Samsung & Pixel</span>
+                        <span className="mega-link-title">Portable & Mobile Readers</span>
+                        <span className="mega-link-desc">Wi-Fi & 4G on-the-go taking</span>
                       </div>
                     </Link>
                   </div>
+                </div>
+
+                <div>
+                  <div className="mega-column-title">Merchant Solutions</div>
+                  <div className="mega-link-list">
+                    <Link href="/card-machines" className="mega-link-item">
+                      <div className="mega-icon-box"><Sparkles size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Next-Day Payouts</span>
+                        <span className="mega-link-desc">Faster business cashflow</span>
+                      </div>
+                    </Link>
+                    <Link href="/card-machines" className="mega-link-item">
+                      <div className="mega-icon-box"><CreditCard size={16} /></div>
+                      <div className="mega-link-text">
+                        <span className="mega-link-title">Virtual POS & Terminals</span>
+                        <span className="mega-link-desc">Take phone & online payments</span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="mega-promo-box">
+                  <div>
+                    <div className="mega-promo-title">Lowest UK Rates</div>
+                    <div className="mega-promo-desc">Slash transaction fees from 0.29% + zero exit penalties.</div>
+                  </div>
+                  <Link href="/card-machines" className="mega-promo-btn">Compare Terminals</Link>
                 </div>
               </div>
             </div>
@@ -381,15 +409,15 @@ export default function Header() {
               </Link>
 
               <Link 
-                href="/sim-only" 
-                className={`mobile-nav-link ${pathname.startsWith('/sim-only') ? 'active' : ''}`}
+                href="/card-machines" 
+                className={`mobile-nav-link ${pathname.startsWith('/card-machines') ? 'active' : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <div className="mobile-nav-link-left">
-                  <div className="mobile-icon-box" style={{ color: '#06b6d4', background: 'rgba(6,182,212,0.1)' }}>
-                    <Smartphone size={18} />
+                  <div className="mobile-icon-box" style={{ color: '#8b5cf6', background: 'rgba(139,92,246,0.1)' }}>
+                    <CreditCard size={18} />
                   </div>
-                  <span>Mobile & SIM</span>
+                  <span>Card Machines & POS</span>
                 </div>
                 <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', color: '#94a3b8' }} />
               </Link>

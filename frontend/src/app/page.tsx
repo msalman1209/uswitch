@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  Wifi, Zap, Smartphone, Search, ArrowRight, 
+  Wifi, Zap, CreditCard, Search, ArrowRight, 
   CheckCircle2, Star, Shield, ChevronRight, Building, Home
 } from 'lucide-react';
 
@@ -46,12 +46,12 @@ export default function HomePage() {
       color: '#0284c7'
     },
     {
-      id: 'mobile',
-      title: 'Mobile & SIM Only',
-      desc: 'Compare SIM only deals, unlimited 5G data plans, and top UK phone networks.',
-      icon: <Smartphone size={28} />,
-      badge: 'Unlimited 5G Data',
-      href: '/sim-only',
+      id: 'card-machines',
+      title: 'Card Machines & POS',
+      desc: 'Compare low-rate UK card machines, contactless terminals, and merchant accounts with next-day payout.',
+      icon: <CreditCard size={28} />,
+      badge: 'From 0.29% Transaction Fee',
+      href: '/card-machines',
       color: '#8b5cf6'
     }
   ];
@@ -111,7 +111,7 @@ export default function HomePage() {
                 Switch household bills. <span>Save hundreds.</span>
               </h1>
               <p className="hero-subtitle">
-                Join thousands of UK households who have saved money on Gas, Electricity, Broadband & Mobile with NexGen Power Solutions.
+                Join thousands of UK businesses and homes who have saved money on Gas, Electricity, Broadband & Card Machines with NexGen Power Solutions.
               </p>
 
               <div className="hero-trust-list">
